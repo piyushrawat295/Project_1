@@ -48,7 +48,7 @@ export default function Services() {
   ];
 
   return (
-    <section className="bg-[#0F71A8]">
+    <section className=" bg-[#0F71A8]">
       <div
         className="
           mx-auto

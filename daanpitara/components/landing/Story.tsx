@@ -2,11 +2,10 @@ import { ChevronRight } from "lucide-react";
 
 export default function Story() {
   return (
-    <section className="bg-white py-16 sm:py-20">
+    <section className="bg-[#FFFDF9] py-16 sm:py-20">
       <div
         className="
           mx-auto
-          w-full
           max-w-[1440px]
           px-4 sm:px-6 xl:px-[72px]
           grid
@@ -18,31 +17,30 @@ export default function Story() {
       >
         {/* LEFT VISUAL */}
         <div className="relative flex justify-center">
+          {/* Main Circle */}
           <div
             className="
               flex
               items-center
               justify-center
-              rounded-full
-              bg-gradient-to-br
-              from-blue-400
-              to-green-400
-              text-5xl
-              sm:text-6xl
+              overflow-hidden
               w-[200px] h-[200px]
               sm:w-[240px] sm:h-[240px]
               lg:w-[260px] lg:h-[260px]
             "
           >
-            🌍
+            <img
+              src="/Photo3.png" // replace with your figma image
+              alt="Helping NGOs"
+              className="w-full h-full object-cover"
+            />
           </div>
 
           {/* Badge */}
-          <div
+          {/* <div
             className="
               absolute
               -bottom-4
-              sm:bottom-0
               bg-white
               px-6
               py-3
@@ -51,15 +49,15 @@ export default function Story() {
               text-center
             "
           >
-            <p className="font-semibold text-gray-900 leading-tight">
+            <p className="text-[14px] font-medium text-black leading-tight">
               Let us<br />help you
             </p>
-          </div>
+          </div> */}
         </div>
 
         {/* RIGHT CONTENT */}
         <div className="text-center lg:text-left">
-          <h2 className="text-[28px] sm:text-[32px] lg:text-[36px] font-medium text-gray-900 mb-6">
+          <h2 className="text-[28px] sm:text-[32px] lg:text-[36px] font-medium text-black mb-6">
             Our Story
           </h2>
 
@@ -72,7 +70,7 @@ export default function Story() {
           <p className="text-[#4C4B4B] mb-8 leading-relaxed">
             What started as a small initiative in India has grown into a global
             platform, helping changemakers raise funds, build credibility, and
-            scale their social impact.
+            grow their impact online.
           </p>
 
           <div className="flex justify-center lg:justify-start">
@@ -83,11 +81,12 @@ export default function Story() {
                 gap-2
                 h-[48px]
                 px-8
-                border
-                border-blue-600
-                text-blue-600
                 rounded-lg
+                border
+                border-[#0F71A8]
+                text-[#0F71A8]
                 hover:bg-blue-50
+                transition
               "
             >
               Join Our Mission
