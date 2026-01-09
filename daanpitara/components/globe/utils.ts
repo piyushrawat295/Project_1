@@ -22,16 +22,28 @@ export function latLngToVector3(
 /**
  * ✅ CORRECT globe rotation to bring lat/lng to camera front (+Z)
  */
+// export function latLngToGlobeRotation(lat: number, lng: number) {
+//   const phi = THREE.MathUtils.degToRad(90 - lat);
+//   const theta = THREE.MathUtils.degToRad(lng + 180);
+
+//   return {
+//     x: -(phi - Math.PI / 2),
+//     y: theta,
+//   };
+// }
 export function latLngToGlobeRotation(lat: number, lng: number) {
-  const phi = THREE.MathUtils.degToRad(90 - lat);
-  const theta = THREE.MathUtils.degToRad(lng + 180);
+  // tweak these in DEGREES until the marker is dead‑center
+  const LAT_OFFSET = 0;   // positive -> move marker slightly down, negative -> up
+  const LNG_OFFSET = -50;  // positive -> rotate globe a bit more to the left, negative -> right
+
+  const phi = THREE.MathUtils.degToRad(90 - (lat + LAT_OFFSET));
+  const theta = THREE.MathUtils.degToRad(lng + 180 + LNG_OFFSET);
 
   return {
     x: -(phi - Math.PI / 2),
     y: theta,
   };
 }
-
 
 /**
  * Smooth rotation with wrapping (Y axis)
