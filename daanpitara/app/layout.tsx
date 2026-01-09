@@ -1,4 +1,6 @@
+import { GlobeProvider } from "@/context/GlobeContext";
 import "./globals.css";
+import Navbar from "@/components/layout/Navbar";
 
 export const metadata = {
   title: "DaanPitara | Trusted NGO & CSR Platform",
@@ -16,7 +18,10 @@ export default function RootLayout({
         className="bg-white text-gray-900 antialiased"
         style={{ fontFamily: "Satoshi, sans-serif" }}
       >
-        {children}
+        <GlobeProvider>
+          <Navbar />
+          {children}
+        </GlobeProvider>
       </body>
     </html>
   );

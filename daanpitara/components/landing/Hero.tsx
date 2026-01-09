@@ -1,10 +1,22 @@
-import { ChevronRight, Phone } from "lucide-react";
+"use client";
+
+import { ChevronRight, Phone, MapPin } from "lucide-react";
+import dynamic from "next/dynamic";
+import { useGlobe } from "@/context/GlobeContext";
+import { Suspense } from "react";
+import { GlobeErrorBoundary } from "../globe/GlobeErrorBoundary";
+
+// 🔥 IMPORTANT: dynamic import (SSR off)
+const GlobeCanvas = dynamic(() => import("../globe/GlobeCanvas"), {
+  ssr: false,
+});
 
 export default function Hero() {
+  const { selectedLocation } = useGlobe();
+
   return (
     <section className="bg-[#FFFDF9]">
       <div className="mx-auto w-full max-w-[1440px] px-4 sm:px-6 xl:px-[72px] pt-[56px]">
-        
         {/* Top */}
         <div className="flex flex-col xl:flex-row items-center gap-12 xl:gap-[50px]">
           
@@ -16,11 +28,8 @@ export default function Hero() {
 
             <p className="text-[#4C4B4B] text-[16px] xl:text-[18px] leading-normal mb-10">
               DaanPitara empowers NGOs across the globe to embrace digital
-              transformation, amplify their social impact, and attract meaningful
-              CSR partnerships. Through powerful digital branding, smart
-              fundraising tools, and transparent donor engagement systems, we
-              help organizations build trust, raise sustainable funds, and
-              create long-lasting change within their communities.
+              transformation, amplify their social impact, and attract
+              meaningful CSR partnerships.
             </p>
 
             <div className="flex flex-wrap gap-4">
@@ -36,11 +45,69 @@ export default function Hero() {
             </div>
           </div>
 
-          {/* RIGHT */}
-          <div className="w-full max-w-[565px] h-[240px] sm:h-[300px] xl:h-[341px] rounded-xl bg-gray-300 flex items-center justify-center">
-            🌍 Globe will come here
+          {/* RIGHT → 🌍 GLOBE - ✅ UPDATED: Added overlay badge */}
+          <div className="w-full max-w-[565px] h-[280px] sm:h-[340px] xl:h-[400px] rounded-xl overflow-hidden bg-[#F3F4F6] relative">
+            <GlobeErrorBoundary>
+              <Suspense
+                fallback={
+                  <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-blue-50 to-cyan-50 rounded-xl">
+                    <div className="text-center">
+                      <div className="w-12 h-12 border-4 border-blue-500 border-t-transparent rounded-full animate-spin mx-auto mb-3" />
+                      <p className="text-sm text-gray-600">Loading globe...</p>
+                    </div>
+                  </div>
+                }
+              >
+                <GlobeCanvas target={selectedLocation} />
+              </Suspense>
+            </GlobeErrorBoundary>
+
+            {/* ✅ ADDED: Location Badge Overlay */}
+            {selectedLocation && (
+              <div className="absolute top-4 right-4 bg-white/95 backdrop-blur-sm rounded-lg shadow-lg px-4 py-3 border-l-4 border-green-500">
+                <div className="flex items-start gap-3">
+                  <MapPin className="w-5 h-5 text-green-500 mt-0.5 flex-shrink-0" />
+                  <div>
+                    <p className="font-bold text-gray-900 text-sm">
+                      {selectedLocation.name}
+                    </p>
+                    {selectedLocation.city && (
+                      <p className="text-xs text-gray-600 mt-1">
+                        📍 {selectedLocation.city}, India
+                      </p>
+                    )}
+                    {selectedLocation.pincode && (
+                      <p className="text-xs text-gray-500 mt-0.5">
+                        PIN: {selectedLocation.pincode}
+                      </p>
+                    )}
+                  </div>
+                </div>
+              </div>
+            )}
           </div>
         </div>
+
+        {/* 📍 LOCATION INFO - ✅ UPDATED: Better styling */}
+        {selectedLocation && (
+          <div className="mt-8 p-4 bg-green-50 border border-green-200 rounded-lg text-sm">
+            <div className="flex items-center gap-2 mb-2">
+              <MapPin className="w-4 h-4 text-green-600" />
+              <span className="font-semibold text-green-900">Location Details</span>
+            </div>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-gray-700">
+              <p>
+                <strong>City:</strong> {selectedLocation.city}
+              </p>
+              <p>
+                <strong>Pincode:</strong> {selectedLocation.pincode}
+              </p>
+              <p className="sm:col-span-2">
+                <strong>Coordinates:</strong> {selectedLocation.lat}°N, {selectedLocation.lng}°E
+              </p>
+            </div>
+          </div>
+        )}
 
         {/* Pills */}
         <div className="mt-[56px] mb-[36px] flex flex-wrap gap-4 sm:gap-6">
@@ -57,7 +124,6 @@ export default function Hero() {
             </span>
           ))}
         </div>
-
       </div>
     </section>
   );

@@ -1,4 +1,4 @@
-import Navbar from "@/components/layout/Navbar";
+// import Navbar from "@/components/layout/Navbar";
 import Footer from "@/components/layout/Footer";
 
 import Hero from "@/components/landing/Hero";
@@ -11,7 +11,7 @@ import Testimonials from "@/components/landing/Testimonials";
 export default function HomePage() {
   return (
     <>
-      <Navbar />
+      {/* <Navbar /> */}
       <Hero />
       <Services />
       <Story />
