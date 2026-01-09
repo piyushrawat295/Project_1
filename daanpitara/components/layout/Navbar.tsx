@@ -8,35 +8,44 @@ import { ngos } from "@/data/ngos";
 export default function Navbar() {
   const [open, setOpen] = useState(false);
   const [query, setQuery] = useState("");
+  const [isFocused, setIsFocused] = useState(false);
 
   const { setSelectedLocation, setViewMode } = useGlobe();
+
+  const filteredNgos = ngos
+    .filter((ngo) => {
+      const value = query.trim().toLowerCase();
+      if (!value) return false;
+
+      const searchableFields = [ngo.name, ngo.city, ngo.pincode].filter(Boolean);
+
+      return searchableFields.some((field) =>
+        field?.toLowerCase().includes(value)
+      );
+    })
+    .sort((a, b) => {
+      const q = query.trim().toLowerCase();
+      const aCityExact = a.city?.toLowerCase() === q;
+      const bCityExact = b.city?.toLowerCase() === q;
+      if (aCityExact && !bCityExact) return -1;
+      if (!aCityExact && bCityExact) return 1;
+      return 0;
+    });
+
+  function handleSelect(ngo: (typeof ngos)[number]) {
+    setSelectedLocation(ngo);
+    setViewMode("focus");
+    setOpen(false);
+    setIsFocused(false);
+  }
 
   function handleSearch() {
     const value = query.trim().toLowerCase();
     if (!value) return;
 
-    // ✅ UPDATED: Search by name, city, or pincode
-    const match = ngos.find((ngo) => {
-      const searchableFields = [
-        ngo.name,
-        ngo.city,
-        ngo.pincode,
-      ].filter(Boolean);
-
-      return searchableFields.some((field) =>
-        field?.toLowerCase().includes(value)
-      );
-    });
-
-    if (match) {
-      // 🌍 Focus globe on NGO
-      setSelectedLocation(match);
-      setViewMode("focus");
-
-      // 📱 Close mobile menu after search
-      setOpen(false);
+    if (filteredNgos.length > 0) {
+      handleSelect(filteredNgos[0]);
     } else {
-      // ✅ ADDED: User feedback for no results
       alert(`No results found for "${query}"`);
     }
   }

@@ -9,7 +9,6 @@ import { useGlobe } from "@/context/GlobeContext";
 export default function Pins() {
   const { selectedLocation, viewMode } = useGlobe();
 
-  // ✅ ADDED: Memoize pin positions to avoid recalculation on every render
   const pinData = useMemo(
     () =>
       ngos.map((ngo) => ({
@@ -17,7 +16,7 @@ export default function Pins() {
         position: latLngToVector3(ngo.lat, ngo.lng),
         ngo,
       })),
-    [] // ngos is static data
+    []
   );
 
   return (
@@ -32,15 +31,7 @@ export default function Pins() {
             key={id}
             position={position}
             isActive={isActive}
-            label={
-              isActive
-                ? {
-                    name: ngo.name,
-                    city: ngo.city,
-                    pincode: ngo.pincode,
-                  }
-                : null
-            }
+            name={ngo.name}
           />
         );
       })}

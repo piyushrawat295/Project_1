@@ -8,74 +8,50 @@ import * as THREE from "three";
 type MarkerProps = {
   position: THREE.Vector3;
   isActive: boolean;
-  label: {
-    name: string;
-    city?: string;
-    pincode?: string;
-  } | null;
+  name?: string;
 };
 
-export default function Marker({ position, isActive, label }: MarkerProps) {
+export default function Marker({ position, isActive, name }: MarkerProps) {
   const meshRef = useRef<THREE.Mesh>(null!);
   const { camera } = useThree();
 
   useFrame(({ clock }) => {
     if (!meshRef.current) return;
 
-    // 🎯 Billboard: always face camera
+    // Always face camera
     meshRef.current.lookAt(camera.position);
 
-    // 🔥 Animate only active pin
-    const baseScale = isActive ? 1.8 : 1; // ✅ UPDATED: Slightly larger (was 1.6)
-    const pulse =
-      isActive ? Math.sin(clock.elapsedTime * 4) * 0.25 : 0; // ✅ UPDATED: More pulse
-
+    const baseScale = isActive ? 1.6 : 1;
+    const pulse = isActive ? Math.sin(clock.elapsedTime * 4) * 0.2 : 0;
     const scale = baseScale + pulse;
+
     meshRef.current.scale.set(scale, scale, scale);
   });
 
   return (
     <group position={position}>
-      {/* 📍 Pin - ✅ UPDATED: Larger and more visible */}
+      {/* Pin */}
       <mesh ref={meshRef}>
-        <sphereGeometry args={[0.055, 16, 16]} /> {/* Was 0.045, now 0.055 */}
+        <sphereGeometry args={[0.03, 16, 16]} />
         <meshStandardMaterial
-          color={isActive ? "#22c55e" : "#60a5fa"}
-          emissive={isActive ? "#22c55e" : "#3b82f6"}
-          emissiveIntensity={isActive ? 1.5 : 0.3} // ✅ UPDATED: Brighter glow
+          color={isActive ? "#ef4444" : "#f97373"}
+          emissive={isActive ? "#ef4444" : "#b91c1c"}
+          emissiveIntensity={isActive ? 1.2 : 0.4}
         />
       </mesh>
 
-      {/* 🏷️ Label - ✅ UPDATED: Enhanced styling */}
-      {isActive && label && (
+      {/* DEBUG LABEL */}
+      {isActive && name && (
         <Html
-          distanceFactor={8}
-          position={[0, 0.2, 0]} // ✅ UPDATED: Higher position (was 0.15)
+          position={[0, 0.25, 0]}
           center
+          distanceFactor={7}
           style={{ pointerEvents: "none" }}
         >
-          <div className="rounded-lg bg-white px-4 py-2 shadow-lg text-sm text-gray-800 whitespace-nowrap border-2 border-green-500">
-            <div className="font-bold text-base">{label.name}</div>
-            {label.city && label.pincode && (
-              <div className="text-xs text-gray-600 mt-1">
-                📍 {label.city} • PIN: {label.pincode}
-              </div>
-            )}
+          <div className="rounded-md bg-white px-2 py-0.5 text-xs font-medium shadow-md border border-red-500 whitespace-nowrap">
+            📍 {name}
           </div>
         </Html>
-      )}
-
-      {/* ✅ ADDED: Pulsing ring around active marker */}
-      {isActive && (
-        <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, -0.01, 0]}>
-          <ringGeometry args={[0.08, 0.12, 32]} />
-          <meshBasicMaterial
-            color="#22c55e"
-            transparent
-            opacity={0.6}
-            side={THREE.DoubleSide}
-          />
-        </mesh>
       )}
     </group>
   );
