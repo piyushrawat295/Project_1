@@ -14,7 +14,7 @@ export default function CaseStudies() {
           {/* Card 1 */}
           <div className="bg-white rounded-2xl px-6 py-8 md:px-8 md:py-10 shadow-sm flex flex-col items-center text-center">
             <img
-              src="/images/vasundhara.png"
+              src="/HomeImages/vasundhara.png"
               alt="Vasundhara Maitri Foundation"
               className="h-14 mb-6"
             />
@@ -31,7 +31,7 @@ export default function CaseStudies() {
           {/* Card 2 */}
           <div className="bg-white rounded-2xl px-6 py-8 md:px-8 md:py-10 shadow-sm flex flex-col items-center text-center">
             <img
-              src="/images/mata-gujri.png"
+              src="/HomeImages/mata-gujri.png"
               alt="Mata Gujri Ji Birdh Ashram"
               className="h-14 mb-6"
             />
@@ -48,7 +48,7 @@ export default function CaseStudies() {
           {/* Card 3 */}
           <div className="bg-white rounded-2xl px-6 py-8 md:px-8 md:py-10 shadow-sm flex flex-col items-center text-center">
             <img
-              src="/images/jj-education.png"
+              src="/HomeImages/jj-education.jpg"
               alt="J.J Education Academy"
               className="h-14 mb-6"
             />

@@ -4,6 +4,7 @@ const testimonials = [
   {
     name: "Anjali Mehra",
     role: "Program Coordinator",
+    image: "/HomeImages/anjali.png",
     message:
       "Partnering with DaanPitara has made our outreach so much easier. Their team helped us present our work clearly, and we’ve seen a noticeable increase in people engaging with our initiatives. The support has been consistent and genuinely helpful.",
     rating: 4,
@@ -11,71 +12,95 @@ const testimonials = [
   {
     name: "Anjali Mehra",
     role: "Program Coordinator",
+    image: "/HomeImages/anjali.png",
     message:
-      "DaanPitara helped us build trust with donors and communicate our impact transparently. Their platform made digital transformation simple for our NGO.",
+      "Partnering with DaanPitara has made our outreach so much easier. Their team helped us present our work clearly, and we’ve seen a noticeable increase in people engaging with our initiatives. The support has been consistent and genuinely helpful.",
     rating: 4,
   },
   {
     name: "Anjali Mehra",
     role: "Program Coordinator",
+    image: "/HomeImages/anjali.png",
     message:
-      "The onboarding experience was smooth and the support team was always responsive. We now reach more people and partners effectively.",
+      "Partnering with DaanPitara has made our outreach so much easier. Their team helped us present our work clearly, and we’ve seen a noticeable increase in people engaging with our initiatives. The support has been consistent and genuinely helpful.",
     rating: 4,
   },
 ];
 
 export default function Testimonials() {
   return (
-    <section className="py-16 bg-gray-50">
-      <div className="max-w-7xl mx-auto px-4">
-        
+    <section className="bg-[#FBFAF7] py-[56px]">
+      <div className="max-w-[1264px] mx-auto px-4">
+
         {/* Heading */}
-        <div className="text-center mb-12">
-          <h2 className="text-4xl font-bold text-gray-900 mb-3">
+        <div className="text-center mb-[56px]">
+          <h2 className="text-[32px] font-semibold text-[#0A0A0A] mb-2">
             Testimonials
           </h2>
-          <p className="text-gray-600 text-lg">
-            What Our Clients Say About Us
+          <p className="text-[#6A7282]">
+            What Our Client Say About Us
           </p>
         </div>
 
         {/* Cards */}
-        <div className="grid md:grid-cols-3 gap-8">
+        <div className="flex flex-col lg:flex-row gap-[56px] justify-center">
           {testimonials.map((item, index) => (
             <div
               key={index}
-              className="bg-white rounded-xl p-8 shadow-md relative"
+              className="
+                relative
+                bg-white
+                w-full
+                lg:w-[380px]
+                rounded-[20px]
+                border border-[#6A7282]/50
+                px-[28px]
+                py-[37px]
+                shadow-[0_8px_10px_rgba(0,0,0,0.05)]
+                flex
+                flex-col
+                gap-[10px]
+              "
             >
-              {/* Quote icon */}
-              <span className="absolute top-4 right-6 text-6xl text-gray-200">
-                “
-              </span>
-
               {/* Stars */}
-              <div className="flex mb-4">
+              <div className="flex gap-1">
                 {[...Array(item.rating)].map((_, i) => (
                   <Star
                     key={i}
-                    className="w-5 h-5 fill-yellow-400 text-yellow-400"
+                    className="w-4 h-4 fill-[#F5B301] text-[#F5B301]"
                   />
                 ))}
               </div>
 
+              {/* Quote Icon */}
+              <img
+                src="/HomeImages/Icon.svg"
+                alt="Quote icon"
+                className="absolute top-[28px] right-[28px] w-[64px] h-[64px] opacity-50"
+              />
+
               {/* Message */}
-              <p className="text-gray-600 mb-6 leading-relaxed">
+              <p className="text-sm text-[#4C4B4B] leading-relaxed mt-6">
                 {item.message}
               </p>
 
               {/* User */}
-              <div className="flex items-center gap-4">
-                <div className="w-12 h-12 rounded-full bg-blue-100 flex items-center justify-center font-bold text-blue-600">
-                  {item.name.charAt(0)}
-                </div>
+              <div className="flex items-center gap-3 mt-4">
+                <img
+                  src={item.image}
+                  alt={item.name}
+                  className="w-10 h-10 rounded-full object-cover"
+                />
                 <div>
-                  <p className="font-semibold text-gray-900">{item.name}</p>
-                  <p className="text-sm text-gray-500">{item.role}</p>
+                  <p className="text-sm font-semibold text-[#0A0A0A]">
+                    {item.name}
+                  </p>
+                  <p className="text-xs text-[#6A7282]">
+                    {item.role}
+                  </p>
                 </div>
               </div>
+
             </div>
           ))}
         </div>
