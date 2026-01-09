@@ -48,7 +48,7 @@ export default function Services() {
   ];
 
   return (
-    <section className=" bg-[#0F71A8]">
+     <section className="py-10 ">
       <div
         className="
           mx-auto
@@ -56,6 +56,8 @@ export default function Services() {
           max-w-[1264px]
           px-4 sm:px-6 xl:px-[62px]
           py-[40px]
+          bg-[#0F71A8]
+          rounded-2xl
         "
       >
         {/* Heading */}

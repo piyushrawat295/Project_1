@@ -2,8 +2,8 @@ import { ChevronRight } from "lucide-react";
 
 export default function Blogs() {
   return (
-    <section className="bg-[#0F71A8] py-16 md:py-20">
-      <div className="max-w-[1262px] mx-auto px-4 text-white flex flex-col gap-12">
+    <section className=" py-10">
+      <div className="bg-[#0F71A8] rounded-2xl max-w-[1262px] mx-auto px-6 md:px-10 py-16 text-white flex flex-col gap-12">
 
         {/* Header */}
         <div className="text-center">
@@ -16,7 +16,8 @@ export default function Blogs() {
         </div>
 
         {/* Content */}
-        <div className="flex flex-col lg:flex-row gap-14 items-stretch">
+       <div className="flex flex-col lg:flex-row gap-14 items-stretch max-w-[1100px] mx-auto w-full">
+
 
           {/* LEFT – Blog Cards */}
           <div className="flex flex-col gap-8 flex-1">

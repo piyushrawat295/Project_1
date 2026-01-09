@@ -1,7 +1,7 @@
 export default function CaseStudies() {
   return (
-    <section className="bg-[#8BBBD4] py-16 md:py-20 rounded-2xl">
-      <div className="max-w-[1264px] mx-auto px-4 flex flex-col items-center gap-10">
+    <section className="py-10">
+      <div className="bg-[#8BBBD4] rounded-2xl max-w-[1264px] mx-auto px-4 flex flex-col items-center gap-10 py-16">
         
         {/* Heading */}
         <h2 className="text-3xl md:text-4xl font-semibold text-white text-center">
@@ -9,7 +9,7 @@ export default function CaseStudies() {
         </h2>
 
         {/* Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-8 md:gap-14 w-full">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-8 md:gap-14 w-full max-w-[1100px]">
           
           {/* Card 1 */}
           <div className="bg-white rounded-2xl px-6 py-8 md:px-8 md:py-10 shadow-sm flex flex-col items-center text-center">

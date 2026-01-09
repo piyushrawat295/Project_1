@@ -2,7 +2,7 @@ import { ChevronRight } from "lucide-react";
 
 export default function Story() {
   return (
-    <section className="bg-[#FFFDF9] py-16 sm:py-20">
+    <section className="bg-[#FFFDF9] py-16 ">
       <div
         className="
           mx-auto
@@ -36,23 +36,7 @@ export default function Story() {
             />
           </div>
 
-          {/* Badge */}
-          {/* <div
-            className="
-              absolute
-              -bottom-4
-              bg-white
-              px-6
-              py-3
-              rounded-lg
-              shadow-md
-              text-center
-            "
-          >
-            <p className="text-[14px] font-medium text-black leading-tight">
-              Let us<br />help you
-            </p>
-          </div> */}
+          
         </div>
 
         {/* RIGHT CONTENT */}
