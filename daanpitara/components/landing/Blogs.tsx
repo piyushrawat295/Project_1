@@ -1,7 +1,17 @@
+"use client";
+
+import { motion } from "framer-motion";
+
 export default function Blogs() {
   return (
     <section className="py-12">
-      <div className="max-w-[1260px] mx-auto bg-[#0F71A8] rounded-2xl px-6 md:px-10 py-14">
+      <motion.div 
+        initial={{ opacity: 0, y: 30 }}
+        whileInView={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.6 }}
+        viewport={{ once: true }}
+        className="max-w-[1260px] mx-auto bg-[#0F71A8] rounded-2xl px-6 md:px-10 py-14"
+      >
 
         {/* Header */}
         <div className="text-center mb-14">
@@ -20,8 +30,12 @@ export default function Blogs() {
           <div className="flex flex-col gap-8 flex-1">
 
             {[1, 2].map((_, i) => (
-              <div
+              <motion.div
                 key={i}
+                initial={{ opacity: 0, x: -20 }}
+                whileInView={{ opacity: 1, x: 0 }}
+                transition={{ delay: i * 0.1, duration: 0.5 }}
+                viewport={{ once: true }}
                 className="bg-white rounded-lg p-[21px] flex gap-6 shadow-sm"
               >
                 {/* Image */}
@@ -76,12 +90,18 @@ export default function Blogs() {
 
                   </div>
                 </div>
-              </div>
+              </motion.div>
             ))}
           </div>
 
           {/* RIGHT — Highlights */}
-          <div className="bg-white rounded-xl p-6 w-full lg:w-[360px] shadow-sm">
+          <motion.div 
+            initial={{ opacity: 0, x: 20 }}
+            whileInView={{ opacity: 1, x: 0 }}
+            transition={{ duration: 0.6 }}
+            viewport={{ once: true }}
+            className="bg-white rounded-xl p-6 w-full lg:w-[360px] shadow-sm"
+          >
             <h3 className="text-[24px] leading-[32px] font-bold mb-6">
               Highlights
             </h3>
@@ -106,10 +126,10 @@ export default function Blogs() {
                 </div>
               ))}
             </div>
-          </div>
+          </motion.div>
 
         </div>
-      </div>
+      </motion.div>
     </section>
   );
 }

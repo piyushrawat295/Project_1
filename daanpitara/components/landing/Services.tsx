@@ -1,4 +1,7 @@
+"use client";
+
 import Image from "next/image";
+import { motion } from "framer-motion";
 
 export default function Services() {
   const services = [
@@ -42,7 +45,13 @@ export default function Services() {
 
   return (
     <section className="py-12">
-      <div className="mx-auto max-w-[1264px] bg-[#0F71A8] rounded-2xl px-[62px] py-[40px]">
+      <motion.div 
+        initial={{ opacity: 0, y: 30 }}
+        whileInView={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.6 }}
+        viewport={{ once: true }}
+        className="mx-auto max-w-[1264px] bg-[#0F71A8] rounded-2xl px-[62px] py-[40px]"
+      >
 
         {/* Heading */}
         <h2 className="text-center text-[36px] leading-[44px] font-medium text-white mb-2">
@@ -56,8 +65,12 @@ export default function Services() {
         {/* Cards Grid */}
         <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-[56px] place-items-center">
           {services.map((s, i) => (
-            <div
+            <motion.div
               key={i}
+              initial={{ opacity: 0, y: 20 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              transition={{ delay: i * 0.1, duration: 0.5 }}
+              viewport={{ once: true }}
               className="
                 w-[318px]
                 h-[307px]
@@ -87,10 +100,10 @@ export default function Services() {
               <p className="text-[#4C4B4B] text-[14px] leading-[20px]">
                 {s.description}
               </p>
-            </div>
+            </motion.div>
           ))}
         </div>
-      </div>
+      </motion.div>
     </section>
   );
 }

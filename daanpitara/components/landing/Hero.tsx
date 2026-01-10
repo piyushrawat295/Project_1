@@ -5,6 +5,7 @@ import dynamic from "next/dynamic";
 import { useGlobe } from "@/context/GlobeContext";
 import { Suspense } from "react";
 import { GlobeErrorBoundary } from "../globe/GlobeErrorBoundary";
+import { motion } from "framer-motion";
 
 // 🔥 IMPORTANT: dynamic import (SSR off)
 const GlobeCanvas = dynamic(() => import("../globe/GlobeCanvas"), {
@@ -16,14 +17,25 @@ export default function Hero() {
 
   return (
     <section className="bg-[#FFFDF9]">
-      <div className="mx-auto w-full max-w-[1440px] px-4 sm:px-6 xl:px-[72px] pt-[56px]">
+      <motion.div 
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.6 }}
+        className="mx-auto w-full max-w-[1440px] px-4 sm:px-6 xl:px-[72px] pt-[56px]"
+      >
         {/* Top */}
         <div className="flex flex-col xl:flex-row items-center gap-12 xl:gap-[50px]">
           
           {/* LEFT */}
           <div className="w-full xl:w-[659px]">
             <h1 className="text-black text-[28px] sm:text-[32px] xl:text-[40px] font-medium leading-normal mb-6">
-              Trusted Digital Platform For NGOs & Fundraising
+              {selectedLocation?.city ? (
+                <>
+                  DaanPitara <span className="text-[#0F71A8]">{selectedLocation.city}</span>
+                </>
+              ) : (
+                "Trusted Digital Platform For NGOs & Fundraising"
+              )}
             </h1>
 
             <p className="text-[#4C4B4B] text-[16px] xl:text-[18px] leading-normal mb-10">
@@ -124,7 +136,7 @@ export default function Hero() {
             </span>
           ))}
         </div>
-      </div>
+      </motion.div>
     </section>
   );
 }

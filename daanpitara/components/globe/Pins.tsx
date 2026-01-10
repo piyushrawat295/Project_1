@@ -6,8 +6,11 @@ import Marker from "./Marker";
 import { latLngToVector3 } from "./utils";
 import { useGlobe } from "@/context/GlobeContext";
 
+import { useRouter } from "next/navigation";
+
 export default function Pins() {
   const { selectedLocation, viewMode } = useGlobe();
+  const router = useRouter();
 
   const pinData = useMemo(
     () =>
@@ -32,6 +35,7 @@ export default function Pins() {
             position={position}
             isActive={isActive}
             name={ngo.name}
+            onClick={() => router.push(`/ngos/${ngo.slug}`)}
           />
         );
       })}

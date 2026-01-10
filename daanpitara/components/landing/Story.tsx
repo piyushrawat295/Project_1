@@ -1,4 +1,7 @@
+"use client";
+
 import { ChevronRight } from "lucide-react";
+import { motion } from "framer-motion";
 
 export default function Story() {
   return (
@@ -16,7 +19,13 @@ export default function Story() {
         "
       >
         {/* LEFT VISUAL */}
-        <div className="relative flex justify-center">
+        <motion.div 
+          initial={{ opacity: 0, x: -50 }}
+          whileInView={{ opacity: 1, x: 0 }}
+          transition={{ duration: 0.8 }}
+          viewport={{ once: true }}
+          className="relative flex justify-center"
+        >
           {/* Main Circle */}
           <div
             className="
@@ -37,10 +46,16 @@ export default function Story() {
           </div>
 
           
-        </div>
+        </motion.div>
 
         {/* RIGHT CONTENT */}
-        <div className="text-center lg:text-left">
+        <motion.div 
+          initial={{ opacity: 0, x: 50 }}
+          whileInView={{ opacity: 1, x: 0 }}
+          transition={{ duration: 0.8 }}
+          viewport={{ once: true }}
+          className="text-center lg:text-left"
+        >
           <h2 className="text-[28px] sm:text-[32px] lg:text-[36px] font-medium text-black mb-6">
             Our Story
           </h2>
@@ -77,7 +92,7 @@ export default function Story() {
               <ChevronRight className="w-5 h-5" />
             </button>
           </div>
-        </div>
+        </motion.div>
       </div>
     </section>
   );

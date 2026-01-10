@@ -1,4 +1,7 @@
+"use client";
+
 import { Star } from "lucide-react";
+import { motion } from "framer-motion";
 
 const testimonials = [
   {
@@ -33,20 +36,30 @@ export default function Testimonials() {
       <div className="max-w-[1264px] mx-auto px-4">
 
         {/* Heading */}
-        <div className="text-center mb-[56px]">
+        <motion.div 
+          initial={{ opacity: 0, y: 20 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.6 }}
+          viewport={{ once: true }}
+          className="text-center mb-[56px]"
+        >
           <h2 className="text-[32px] font-semibold text-[#0A0A0A] mb-2">
             Testimonials
           </h2>
           <p className="text-[#6A7282]">
             What Our Client Say About Us
           </p>
-        </div>
+        </motion.div>
 
         {/* Cards */}
         <div className="flex flex-col lg:flex-row gap-[56px] justify-center">
           {testimonials.map((item, index) => (
-            <div
+            <motion.div
               key={index}
+              initial={{ opacity: 0, y: 30 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              transition={{ delay: index * 0.1, duration: 0.5 }}
+              viewport={{ once: true }}
               className="
                 relative
                 bg-white
@@ -101,7 +114,7 @@ export default function Testimonials() {
                 </div>
               </div>
 
-            </div>
+            </motion.div>
           ))}
         </div>
 
