@@ -1,6 +1,7 @@
 import { GlobeProvider } from "@/context/GlobeContext";
 import "./globals.css";
 import Navbar from "@/components/layout/Navbar";
+import Footer from "@/components/layout/Footer";
 import { verifySession } from "@/lib/session";
 
 export const metadata = {
@@ -24,6 +25,7 @@ export default async function RootLayout({
         <GlobeProvider>
           <Navbar session={session} />
           {children}
+          <Footer />
         </GlobeProvider>
       </body>
     </html>

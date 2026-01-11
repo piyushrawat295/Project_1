@@ -124,6 +124,12 @@ export async function signin(prevState: any, formData: FormData) {
     };
   }
 
+  if (!user.password) {
+    return {
+      message: 'Invalid email or password.',
+    };
+  }
+
   const passwordsMatch = await bcrypt.compare(password, user.password);
 
   if (!passwordsMatch) {
@@ -169,6 +175,12 @@ export async function loginAdmin(prevState: any, formData: FormData) {
     };
   }
 
+  if (!user.password) {
+     return {
+      message: 'Invalid Admin credentials.',
+    };
+  }
+
   const passwordsMatch = await bcrypt.compare(password, user.password);
 
   if (!passwordsMatch) {
@@ -178,7 +190,7 @@ export async function loginAdmin(prevState: any, formData: FormData) {
   }
 
   await createSession(user.id, 'admin');
-  redirect('/dashboard/admin');
+  redirect('/');
 }
 
 export async function logout() {

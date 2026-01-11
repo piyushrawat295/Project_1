@@ -1,6 +1,7 @@
 "use client";
 
 import { ChevronRight, Phone, MapPin } from "lucide-react";
+import TypewriterText from "@/components/animations/TypewriterText";
 import dynamic from "next/dynamic";
 import { useGlobe } from "@/context/GlobeContext";
 import { Suspense } from "react";
@@ -28,15 +29,16 @@ export default function Hero() {
           
           {/* LEFT */}
           <div className="w-full xl:w-[659px]">
-            <h1 className="text-black text-[28px] sm:text-[32px] xl:text-[40px] font-medium leading-normal mb-6">
-              {selectedLocation?.city ? (
-                <>
-                  DaanPitara <span className="text-[#0F71A8]">{selectedLocation.city}</span>
-                </>
-              ) : (
-                "Trusted Digital Platform For NGOs & Fundraising"
-              )}
-            </h1>
+            {selectedLocation?.city ? (
+              <h1 className="text-black text-[28px] sm:text-[32px] xl:text-[40px] font-medium leading-normal mb-6">
+                DaanPitara <span className="text-[#0F71A8]">{selectedLocation.city}</span>
+              </h1>
+            ) : (
+              <TypewriterText 
+                text="Trusted Digital Platform For NGOs & Fundraising" 
+                className="text-black text-[28px] sm:text-[32px] xl:text-[40px] font-medium leading-normal mb-6"
+              />
+            )}
 
             <p className="text-[#4C4B4B] text-[16px] xl:text-[18px] leading-normal mb-10">
               DaanPitara empowers NGOs across the globe to embrace digital
