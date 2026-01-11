@@ -58,7 +58,8 @@ export default function Hero() {
           </div>
 
           {/* RIGHT → 🌍 GLOBE - ✅ UPDATED: Added overlay badge */}
-          <div className="w-full max-w-[565px] h-[280px] sm:h-[340px] xl:h-[400px] rounded-xl overflow-hidden bg-[#F3F4F6] relative">
+          {/* RIGHT → 🌍 GLOBE - ✅ UPDATED: Removed container styling */}
+          <div className="w-full max-w-[565px] h-[350px] sm:h-[420px] xl:h-[500px] relative">
             <GlobeErrorBoundary>
               <Suspense
                 fallback={

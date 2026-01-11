@@ -31,6 +31,7 @@ async function migrate() {
         email TEXT NOT NULL UNIQUE,
         password TEXT NOT NULL,
         role role NOT NULL DEFAULT 'user',
+        organization_name TEXT,
         created_at TIMESTAMP NOT NULL DEFAULT NOW()
       );
     `);
