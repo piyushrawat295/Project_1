@@ -2,7 +2,7 @@
 
 import { db } from '@/lib/db';
 import { users } from '@/lib/schema';
-import { createSession, deleteSession } from '@/lib/session';
+
 import { eq } from 'drizzle-orm';
 import bcrypt from 'bcryptjs';
 import { redirect } from 'next/navigation';
@@ -12,31 +12,19 @@ const SignupSchema = z.object({
   name: z.string().min(2, { message: 'Name must be at least 2 characters long.' }),
   email: z.string().email({ message: 'Please enter a valid email.' }),
   password: z.string().min(6, { message: 'Password must be at least 6 characters long.' }),
-  role: z.enum(['ngo', 'user']), // Admin removed from public signup
-  organizationName: z.string().optional(),
-});
-
-const SigninSchema = z.object({
-  email: z.string().email(),
-  password: z.string(),
-});
-
-const AdminSigninSchema = z.object({
-  email: z.string().email(),
-  password: z.string(),
-  secretKey: z.string().min(1, "Security key is required"),
+  // role: z.enum(['ngo', 'user']), // Admin removed from public signup - Defaults to NGO now
+  organizationName: z.string().min(2, { message: "Organization name is required." }), 
 });
 
 export async function signup(prevState: any, formData: FormData) {
   // Validate form fields
-  const role = formData.get('role');
+  // const role = formData.get('role'); // Removed role selection
   
-  // Custom validation for organizationName if role is ngo
   const rawData = {
     name: formData.get('name'),
     email: formData.get('email'),
     password: formData.get('password'),
-    role: role,
+    // role: role,
     organizationName: formData.get('organizationName'),
   };
 
@@ -48,16 +36,7 @@ export async function signup(prevState: any, formData: FormData) {
     };
   }
 
-  const { name, email, password, role: parsedRole, organizationName } = validatedFields.data;
-
-  // Extra validation for NGO
-  if (parsedRole === 'ngo' && !organizationName) {
-    return {
-      errors: {
-        organizationName: ['Organization name is required for NGOs.'],
-      },
-    };
-  }
+  const { name, email, password, organizationName } = validatedFields.data;
 
   // Check if user exists
   const existingUser = await db.select().from(users).where(eq(users.email, email));
@@ -78,12 +57,15 @@ export async function signup(prevState: any, formData: FormData) {
       name,
       email,
       password: hashedPassword,
-      role: parsedRole,
-      organizationName: parsedRole === 'ngo' ? organizationName : null,
+      role: 'ngo', // Defaulting to NGO
+      organizationName: organizationName,
+      provider: 'credentials',
     }).returning({ id: users.id });
 
-    // Create session
-    await createSession(newUser.id, parsedRole);
+    // Custom session creation removed - User will need to sign in manually or we can auto-signin (but tricky with NextAuth Credentials server-side)
+    // For now, redirect to signin page or allow auto-login on client side?
+    // Easiest flow: Redirect to signin with a "Account created" message.
+    
   } catch (error) {
     console.error('Signup Error:', error);
     return {
@@ -91,109 +73,24 @@ export async function signup(prevState: any, formData: FormData) {
     };
   }
 
-  // Redirect to home page for all roles as per user request
-  redirect('/');
+  redirect('/signin?success=Account created. Please log in.');
 }
 
+/**
+ * @deprecated Use signIn('credentials') from next-auth/react instead
+ */
 export async function signin(prevState: any, formData: FormData) {
-  const validatedFields = SigninSchema.safeParse({
-    email: formData.get('email'),
-    password: formData.get('password'),
-  });
-
-  if (!validatedFields.success) {
-    return {
-      errors: validatedFields.error.flatten().fieldErrors,
-    };
-  }
-
-  const { email, password } = validatedFields.data;
-
-  const [user] = await db.select().from(users).where(eq(users.email, email));
-
-  if (!user) {
-    return {
-      message: 'Invalid email or password.',
-    };
-  }
-
-  // Prevent Admin login via standard form
-  if (user.role === 'admin') {
-    return {
-      message: 'Admins must use the Admin Login portal.',
-    };
-  }
-
-  if (!user.password) {
-    return {
-      message: 'Invalid email or password.',
-    };
-  }
-
-  const passwordsMatch = await bcrypt.compare(password, user.password);
-
-  if (!passwordsMatch) {
-    return {
-      message: 'Invalid email or password.',
-    };
-  }
-
-  await createSession(user.id, user.role);
-
-  redirect('/');
+  return { message: "Please use the new login form." };
 }
 
+/**
+ * @deprecated Use signIn('credentials') from next-auth/react instead
+ */
 export async function loginAdmin(prevState: any, formData: FormData) {
-  const validatedFields = AdminSigninSchema.safeParse({
-    email: formData.get('email'),
-    password: formData.get('password'),
-    secretKey: formData.get('secretKey'),
-  });
-
-  if (!validatedFields.success) {
-    return {
-      errors: validatedFields.error.flatten().fieldErrors,
-    };
-  }
-
-  const { email, password, secretKey } = validatedFields.data;
-
-  // Validate Secret Key
-  if (secretKey !== process.env.ADMIN_SECRET_KEY) {
-     return {
-      message: 'Invalid Security Key.',
-    };
-  }
-
-  const [user] = await db.select().from(users).where(eq(users.email, email));
-
-  if (!user || user.role !== 'admin') {
-     // Don't reveal if it's user existence or role mismatch, or simplify:
-     // If user doesn't exist or isn't admin, fail.
-     return {
-      message: 'Invalid Admin credentials.',
-    };
-  }
-
-  if (!user.password) {
-     return {
-      message: 'Invalid Admin credentials.',
-    };
-  }
-
-  const passwordsMatch = await bcrypt.compare(password, user.password);
-
-  if (!passwordsMatch) {
-    return {
-      message: 'Invalid Admin credentials.',
-    };
-  }
-
-  await createSession(user.id, 'admin');
-  redirect('/');
+    return { message: "Please use the new login form." };
 }
 
 export async function logout() {
-  await deleteSession();
+  // await deleteSession(); // Removed
   redirect('/signin');
 }

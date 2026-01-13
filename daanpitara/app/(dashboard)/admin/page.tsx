@@ -1,11 +1,18 @@
-import { verifySession } from '@/lib/session';
+import { getServerSession } from 'next-auth';
+import { authOptions } from '@/lib/auth-options';
 import { redirect } from 'next/navigation';
 import { logout } from '@/actions/auth';
 
 export default async function AdminDashboard() {
-  const session = await verifySession();
+  let session = null;
+  try {
+    session = await getServerSession(authOptions);
+  } catch (error) {
+    console.error("Session error:", error);
+    redirect('/signin');
+  }
 
-  if (!session || session.role !== 'admin') {
+  if (!session || !session.user || (session.user as any).role !== 'admin') {
     redirect('/signin');
   }
 

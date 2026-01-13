@@ -78,7 +78,8 @@ export default function Navbar({ session }: { session: any }) {
   /* Categories derived from data or static */
   const categories = ["All", "Education", "Health", "Environment", "Elderly Care", "Multi-domain"];
 
-  const dashboardLink = session?.role === 'admin' ? '/admin' : session?.role === 'ngo' ? '/ngo' : '/';
+  const user = session?.user;
+  const dashboardLink = user?.role === 'admin' ? '/admin' : user?.role === 'ngo' ? '/ngo' : '/';
 
   if (isAuthPage) return null;
 
@@ -231,21 +232,21 @@ export default function Navbar({ session }: { session: any }) {
             </motion.div>
           ))}
 
-          {session ? (
+          {user ? (
             <div className="relative ml-4">
               <button
                 onClick={() => setProfileOpen(!profileOpen)}
                 className="flex items-center gap-2 rounded-full ring-2 ring-gray-100 focus:outline-none focus:ring-blue-500"
               >
                 <div className="h-8 w-8 overflow-hidden rounded-full bg-blue-100 flex items-center justify-center">
-                    <span className="font-semibold text-blue-600">{session.role.charAt(0).toUpperCase()}</span>
+                    <span className="font-semibold text-blue-600">{user.role?.charAt(0).toUpperCase()}</span>
                 </div>
               </button>
 
               {profileOpen && (
                 <div className="absolute right-0 mt-2 w-48 origin-top-right rounded-md bg-white py-1 shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none">
                   <div className="px-4 py-2 border-b border-gray-100">
-                     <p className="text-sm font-medium text-gray-900 capitalize">{session.role}</p>
+                     <p className="text-sm font-medium text-gray-900 capitalize">{user.name || user.role}</p>
                   </div>
                   <Link
                     href={dashboardLink}
