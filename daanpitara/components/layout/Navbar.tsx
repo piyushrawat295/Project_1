@@ -61,7 +61,7 @@ export default function Navbar({ session }: { session: any }) {
 
   function handleSelect(ngo: (typeof ngos)[number]) {
     setSelectedLocation(ngo);
-    setViewMode("focus");
+    setViewMode("map");
     setOpen(false);
     setShowResults(false);
     setQuery(""); // Optional: keep or clear query? User request implies specific flow.
@@ -110,7 +110,7 @@ export default function Navbar({ session }: { session: any }) {
           <motion.div variants={{ hidden: { opacity: 0, x: -20 }, visible: { opacity: 1, x: 0 } }}>
           <Link
             href="/"
-            className="flex items-center gap-3 cursor-pointer focus:outline-none focus:ring-2 focus:ring-blue-500 rounded"
+            className="flex items-center gap-0 cursor-pointer focus:outline-none focus:ring-2 focus:ring-blue-500 rounded px-2"
             onClick={() => {
               setViewMode("globe");
               setSelectedLocation(null);
@@ -128,16 +128,8 @@ export default function Navbar({ session }: { session: any }) {
             <img
               src="/Logo.png"
               alt="DaanPitara"
-              className="h-10 w-10 rounded-full"
+              className="h-20 w-auto object-contain"
             />
-            <div>
-              <p className="font-semibold text-[16px] leading-none">
-                DaanPitara
-              </p>
-              <p className="text-[12px] text-gray-500 whitespace-nowrap">
-                Your compassion our code
-              </p>
-            </div>
           </Link>
           </motion.div>
 

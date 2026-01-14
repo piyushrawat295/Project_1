@@ -13,7 +13,7 @@ export type NGOLocation = {
 }
 
 /* 🎥 Globe view modes */
-export type ViewMode = 'globe' | 'focus'
+export type ViewMode = 'globe' | 'focus' | 'map'
 
 type GlobeContextType = {
   selectedLocation: NGOLocation | null

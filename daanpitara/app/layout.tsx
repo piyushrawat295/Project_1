@@ -8,6 +8,9 @@ import { authOptions } from "@/lib/auth-options";
 export const metadata = {
   title: "DaanPitara | Trusted NGO & CSR Platform",
   description: "Connecting NGOs, donors and CSR partners globally",
+  icons: {
+    icon: "/Logo.png",
+  },
 };
 
 export default async function RootLayout({

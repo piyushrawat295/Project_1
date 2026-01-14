@@ -13,8 +13,13 @@ const GlobeCanvas = dynamic(() => import("../globe/GlobeCanvas"), {
   ssr: false,
 });
 
+// 🔥 Dynamic Import for Google Map
+const GoogleMapComponent = dynamic(() => import("../map/GoogleMapComponent"), {
+  ssr: false,
+});
+
 export default function Hero() {
-  const { selectedLocation } = useGlobe();
+  const { selectedLocation, viewMode } = useGlobe();
 
   return (
     <section className="bg-[#FFFDF9]">
@@ -61,21 +66,43 @@ export default function Hero() {
 
           {/* RIGHT → 🌍 GLOBE - ✅ UPDATED: Added overlay badge */}
           {/* RIGHT → 🌍 GLOBE - ✅ UPDATED: Removed container styling */}
-          <div className="w-full max-w-[565px] h-[350px] sm:h-[420px] xl:h-[500px] relative">
-            <GlobeErrorBoundary>
-              <Suspense
-                fallback={
-                  <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-blue-50 to-cyan-50 rounded-xl">
-                    <div className="text-center">
-                      <div className="w-12 h-12 border-4 border-blue-500 border-t-transparent rounded-full animate-spin mx-auto mb-3" />
-                      <p className="text-sm text-gray-600">Loading globe...</p>
-                    </div>
-                  </div>
-                }
-              >
-                <GlobeCanvas target={selectedLocation} />
-              </Suspense>
-            </GlobeErrorBoundary>
+          <div className="w-full max-w-[565px] h-[350px] sm:h-[420px] xl:h-[500px] relative overflow-hidden rounded-xl">
+            {viewMode === "map" ? (
+               <motion.div
+                 key="map"
+                 initial={{ opacity: 0, scale: 0.95 }}
+                 animate={{ opacity: 1, scale: 1 }}
+                 exit={{ opacity: 0, scale: 0.95 }}
+                 transition={{ duration: 0.5 }}
+                 className="w-full h-full"
+               >
+                  <GoogleMapComponent />
+               </motion.div>
+            ) : (
+               <motion.div
+                 key="globe"
+                 initial={{ opacity: 0 }}
+                 animate={{ opacity: 1 }}
+                 exit={{ opacity: 0 }}
+                 transition={{ duration: 0.5 }} // Smooth fade
+                 className="w-full h-full"
+               >
+                <GlobeErrorBoundary>
+                  <Suspense
+                    fallback={
+                      <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-blue-50 to-cyan-50 rounded-xl">
+                        <div className="text-center">
+                          <div className="w-12 h-12 border-4 border-blue-500 border-t-transparent rounded-full animate-spin mx-auto mb-3" />
+                          <p className="text-sm text-gray-600">Loading globe...</p>
+                        </div>
+                      </div>
+                    }
+                  >
+                    <GlobeCanvas target={selectedLocation} />
+                  </Suspense>
+                </GlobeErrorBoundary>
+               </motion.div>
+            )}
 
             {/* ✅ ADDED: Location Badge Overlay */}
             {selectedLocation && (

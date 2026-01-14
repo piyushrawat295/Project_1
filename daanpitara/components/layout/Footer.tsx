@@ -1,3 +1,7 @@
+"use client";
+
+import { usePathname } from "next/navigation";
+import Link from "next/link";
 import {
   Facebook,
   Twitter,
@@ -11,148 +15,150 @@ import {
 } from "lucide-react";
 
 export default function Footer() {
+  const pathname = usePathname();
+  const isAuthPage =
+    pathname === "/signin" ||
+    pathname === "/signup" ||
+    pathname === "/forgot-password" ||
+    pathname === "/verify-otp";
+
+  if (isAuthPage) return null;
+
   return (
-    <footer className="bg-[#E6F4FC]">
-      <div
-        className="
-          mx-auto
-          w-full
-          max-w-[1440px]
-          px-4 sm:px-6 xl:px-[72px]
-          pt-[34px]
-          pb-[37px]
-          flex
-          flex-col
-          gap-[48px] xl:gap-[63px]
-        "
-      >
-        {/* TOP SECTION */}
-        <div
-          className="
-            flex
-            flex-col
-            gap-10
-            md:grid md:grid-cols-2
-            xl:flex xl:flex-row xl:items-start xl:gap-[64px]
-          "
-        >
-          {/* Brand */}
-          <div className="flex flex-col gap-4 xl:w-[353px]">
-            <div className="flex items-center gap-2">
-              <img src="/Logo.png" className="h-10 w-10" />
-              <h3 className="text-[20px] font-semibold text-black">
-                DaanPitara
-              </h3>
+    <footer className="w-full bg-[#0F2D3F] text-white">
+      <div className="mx-auto w-full max-w-[1440px] px-4 py-12 sm:px-6 lg:px-[72px] lg:py-[60px]">
+        <div className="flex flex-col gap-10 lg:flex-row lg:justify-between">
+          {/* Column 1: Brand & Socials */}
+          <div className="flex flex-col gap-6 lg:w-[350px]">
+            {/* Logo */}
+            <div className="flex flex-col gap-2">
+              <div className="flex flex-col items-center gap-2">
+                <div className="relative flex h-24 w-auto items-center justify-center p-1">
+                  <img
+                    src="/Logo.png"
+                    alt="DaanPitara"
+                    className="h-full w-full object-contain"
+                  />
+                </div>
+                <div className="flex flex-col items-center">
+                  <span className="text-3xl font-bold leading-none tracking-tight text-white">
+                    DaanPitara
+                  </span>
+                  <span className="text-sm font-medium text-gray-300">
+                    Your compassion, our code
+                  </span>
+                </div>
+              </div>
             </div>
 
-            <p className="text-[16px] text-[#4C4B4B] leading-relaxed">
-              Recognized as the best CSR fundraising platform,
-              DaanPitara connects NGOs and corporates through seamless
-              digital support, impactful campaigns, and transparent donor engagement.
+            <p className="text-[15px] leading-relaxed text-gray-300">
+              Recognized as the best CSR fundraising platform, DaanPitara
+              connects NGOs and corporates through seamless digital support,
+              impactful campaigns, and transparent donor engagement.
             </p>
 
-            <div className="flex gap-3">
+            {/* Social Icons */}
+            <div className="flex gap-4">
               {[Facebook, Twitter, Linkedin, Instagram, Youtube].map(
                 (Icon, i) => (
-                  <div
+                  <Link
                     key={i}
-                    className="flex h-9 w-9 items-center justify-center rounded-md border border-gray-300 text-gray-600"
+                    href="#"
+                    className="flex h-10 w-10 items-center justify-center rounded-full border border-gray-500 hover:border-white hover:bg-white hover:text-[#0F2D3F] transition-all"
                   >
                     <Icon size={18} />
-                  </div>
+                  </Link>
                 )
               )}
             </div>
+
+            {/* Copyright Desktop */}
+            <div className="mt-auto hidden pt-8 text-sm text-gray-400 lg:block">
+              © {new Date().getFullYear()} DaanPitara, All Right Reserved.
+            </div>
           </div>
 
-          {/* Quick Links */}
+          {/* Column 2: Quick Links */}
           <div className="flex flex-col gap-6">
-            <h4 className="text-[16px] font-medium text-black">
-              Quick Links
-            </h4>
-            <ul className="flex flex-col gap-4 text-[#4C4B4B]">
-              <li>Home</li>
-              <li>About Us</li>
-              <li>Fundraiser form</li>
-              <li>FAQ’s</li>
-              <li>Blogs</li>
+            <h4 className="text-lg font-bold">Quick Links</h4>
+            <ul className="flex flex-col gap-4 text-[15px] text-gray-300">
+              <li className="hover:text-white cursor-pointer">Home</li>
+              <li className="hover:text-white cursor-pointer">About Us</li>
+              <li className="hover:text-white cursor-pointer">
+                Fundraiser form
+              </li>
+              <li className="hover:text-white cursor-pointer">FAQ’s</li>
+              <li className="hover:text-white cursor-pointer">Blogs</li>
             </ul>
           </div>
 
-          {/* Get In Touch */}
+          {/* Column 3: Get In Touch */}
           <div className="flex flex-col gap-6">
-            <h4 className="text-[16px] font-medium text-black">
-              Get In Touch
-            </h4>
-
-            <div className="flex flex-col gap-5 text-[#4C4B4B] text-[16px]">
+            <h4 className="text-lg font-bold">Get In Touch</h4>
+            <div className="flex flex-col gap-5 text-[15px] text-gray-300">
               <div className="flex gap-3">
-                <MapPin size={18} />
-                <p>
-                  D38, Phase 1, Sector 57,
-                  Sahibzada Ajit Singh Nagar,
-                  Punjab 160055, India
+                <MapPin size={20} className="shrink-0" />
+                <p className="max-w-[200px]">
+                  D38, Phase 1, Sector 57, Sahibzada Ajit Singh Nagar, Punjab
+                  160055, India
                 </p>
               </div>
 
               <div className="flex gap-3">
-                <Phone size={18} />
+                <Phone size={20} className="shrink-0" />
                 <p>9876577721</p>
               </div>
 
               <div className="flex gap-3">
-                <Mail size={18} />
+                <Mail size={20} className="shrink-0" />
                 <p>contact@daanpitara.com</p>
               </div>
 
               <div className="flex gap-3">
-                <Clock size={18} />
+                <Clock size={20} className="shrink-0" />
                 <p>Mon – Sat, 10 AM – 6 PM</p>
               </div>
             </div>
           </div>
 
-          {/* Subscribe */}
-          <div className="flex flex-col gap-6 xl:w-[396px]">
-            <h4 className="text-black text-[20px] font-normal leading-[28px]">
+          {/* Column 4: Subscribe */}
+          <div className="flex flex-col gap-6 lg:w-[380px]">
+            <h4 className="text-[17px] font-medium">
               Subscribe Our Zheal Media to get the Latest!
             </h4>
 
-            <div className="flex h-[48px] items-center rounded-md bg-[#9CA3AF] px-4">
+            <div className="relative flex w-full items-center rounded-lg bg-white p-1.5 backdrop-blur-sm">
               <input
+                type="email"
                 placeholder="Your email address"
-                className="flex-1 bg-transparent text-white placeholder:text-white outline-none"
+                className="flex-1 bg-transparent px-3 text-gray-900 outline-none placeholder:text-gray-500"
               />
-              <button className="ml-3 h-[36px] rounded-md bg-blue-500 px-6 text-white">
+              <button className="rounded-md bg-[#005C9F] px-6 py-2.5 text-sm font-semibold text-white hover:bg-blue-700 transition">
                 Subscribe
               </button>
+            </div>
+
+            {/* Legal Links Desktop */}
+            <div className="mt-auto hidden pt-8 lg:flex justify-end gap-6 text-[13px] text-gray-400">
+              <span className="hover:text-white cursor-pointer">
+                Terms & Conditions
+              </span>
+              <span className="hover:text-white cursor-pointer">
+                Privacy Policies
+              </span>
+              <span className="hover:text-white cursor-pointer">Cookies</span>
             </div>
           </div>
         </div>
 
-        {/* BOTTOM BAR */}
-        <div
-          className="
-            flex
-            flex-col
-            gap-4
-            border-t border-gray-300
-            pt-6
-            text-[14px]
-            text-gray-600
-            md:flex-row
-            md:items-center
-            md:justify-between
-            xl:pt-[63px]
-          "
-        >
-          <p>© {new Date().getFullYear()} DaanPitara, All Right Reserved.</p>
-
-          <div className="flex gap-6">
+        {/* Mobile Bottom Section */}
+        <div className="mt-12 flex flex-col items-center gap-4 border-t border-gray-700 pt-8 text-center text-sm text-gray-400 lg:hidden">
+          <div className="flex flex-wrap justify-center gap-4">
             <span>Terms & Conditions</span>
             <span>Privacy Policies</span>
             <span>Cookies</span>
           </div>
+          <p>© {new Date().getFullYear()} DaanPitara, All Right Reserved.</p>
         </div>
       </div>
     </footer>
