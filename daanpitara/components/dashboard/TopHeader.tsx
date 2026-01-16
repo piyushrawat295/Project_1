@@ -26,7 +26,7 @@ export default function TopHeader() {
       {/* Left: Greeting/Breadcrumb */}
       <div>
         <h1 className="text-xl font-bold text-gray-800">
-          Hello {session?.user?.name?.split(" ")[0]} 👋
+          DASHBOARD
         </h1>
       </div>
 

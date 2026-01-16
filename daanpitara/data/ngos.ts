@@ -8,6 +8,7 @@ export type NGO = {
   country: string;
   state: string;
   city?: string;
+  pincode?: string;
   category: "Education" | "Health" | "Elderly Care" | "Environment" | "Multi-domain";
   lat: number;
   lng: number;

@@ -1,6 +1,5 @@
 "use client";
 
-import { useSession } from "next-auth/react";
 import Link from "next/link";
 import { 
   CheckCircle2, 
@@ -21,12 +20,9 @@ import {
 import Image from "next/image";
 
 export default function Dashboard() {
-  const { data: session } = useSession();
-  const firstName = session?.user?.name?.split(" ")[0] || "User";
 
   return (
     <div className="space-y-6">
-      <h2 className="text-2xl font-bold text-gray-900">Hello {firstName} 👋</h2>
 
       <div className="grid grid-cols-1 xl:grid-cols-3 gap-6">
         {/* LEFT COLUMN (2/3) */}

@@ -54,30 +54,30 @@ export default function Sidebar({
     <motion.aside 
       initial={false}
       animate={{ width: collapsed ? 80 : 280 }}
-      className="fixed left-0 top-0 h-screen border-r border-gray-100 bg-white shadow-sm flex flex-col z-50 transition-all duration-300 ease-in-out"
+      className="fixed left-0 top-0 h-screen border-r border-gray-100 bg-white shadow-sm flex flex-col z-50 transition-all duration-300 ease-in-out font-sans"
     >
       {/* Logo & Toggle */}
-      <div className="p-6 border-b border-gray-50 flex items-center justify-between h-[88px]">
+      <div className="p-5 border-b border-gray-50 flex items-center justify-between h-[80px]">
         <AnimatePresence>
           {!collapsed && (
             <motion.div 
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
-              className="flex items-center gap-2 overflow-hidden whitespace-nowrap"
+              className="flex items-center gap-3 overflow-hidden whitespace-nowrap"
             >
                <Image
                 src="/Logo.png"
                 alt="DaanPitara Logo"
-                width={40}
-                height={40}
-                className="w-10 h-10 object-contain"
+                width={48}
+                height={48}
+                className="w-12 h-12 object-contain"
               />
               <div className="flex flex-col">
-                 <span className="text-lg font-bold bg-gradient-to-r from-blue-600 to-green-500 bg-clip-text text-transparent leading-tight">
+                 <span className="text-xl font-bold bg-gradient-to-r from-blue-600 to-green-500 bg-clip-text text-transparent leading-none mb-0.5">
                   DaanPitara
                 </span>
-                <span className="text-[10px] text-gray-400 font-medium">Your compassion, our code</span>
+                <span className="text-[10px] text-gray-400 font-medium">Your compassion,our code</span>
               </div>
             </motion.div>
           )}
@@ -85,7 +85,7 @@ export default function Sidebar({
         
         <button 
           onClick={() => setCollapsed(!collapsed)}
-          className={`p-2 rounded-lg hover:bg-gray-100 text-gray-500 transition-colors ${collapsed ? 'mx-auto' : ''}`}
+          className={`p-1.5 rounded-lg hover:bg-gray-100 text-gray-500 transition-colors ${collapsed ? 'mx-auto' : ''}`}
         >
           {collapsed ? <PanelLeftOpen className="w-5 h-5" /> : <PanelLeftClose className="w-5 h-5" />}
         </button>
@@ -98,19 +98,19 @@ export default function Sidebar({
              initial={{ opacity: 0, height: 0 }}
              animate={{ opacity: 1, height: 'auto' }}
              exit={{ opacity: 0, height: 0 }}
-             className="px-6 py-4"
+             className="px-5 py-6"
            >
-              <h2 className="text-lg font-bold text-gray-900 flex items-center gap-2">
-                Hello {firstName} <span className="text-xl">👋</span>
+              <h2 className="text-xl font-bold text-gray-900 flex items-center gap-2">
+                Hello {firstName} <span className="text-2xl">👋</span>
               </h2>
            </motion.div>
         )}
       </AnimatePresence>
 
       {/* Navigation */}
-      <div className="flex-1 overflow-y-auto py-4 px-3 space-y-1 scrollbar-hide">
+      <div className="flex-1 overflow-y-auto py-2 px-3 space-y-1 [&::-webkit-scrollbar]:hidden -mr-1 pr-1">
         {!collapsed && (
-          <div className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-2 px-3">
+          <div className="text-[11px] font-semibold text-gray-400 uppercase tracking-wider mb-2 px-3 mt-2">
             Navigation
           </div>
         )}
@@ -121,20 +121,20 @@ export default function Sidebar({
             <Link
               key={item.href}
               href={item.href}
-              className={`flex items-center gap-3 px-3 py-3 rounded-lg transition-all duration-200 group relative
+              className={`flex items-center gap-3 px-3 py-2.5 rounded-lg transition-all duration-200 group relative
                 ${isActive 
-                  ? "bg-gray-100 text-gray-900 font-medium" 
+                  ? "bg-gray-100 text-gray-900 font-semibold" 
                   : "text-gray-500 hover:bg-gray-50 hover:text-gray-900"
                 } ${collapsed ? 'justify-center' : ''}`}
               title={collapsed ? item.label : undefined}
             >
               <item.icon 
-                className={`w-5 h-5 transition-colors flex-shrink-0
+                className={`w-[20px] h-[20px] transition-colors flex-shrink-0
                   ${isActive ? "text-gray-900" : "text-gray-400 group-hover:text-gray-600"}
                 `} 
               />
               {!collapsed && (
-                <span className="whitespace-nowrap overflow-hidden text-sm">{item.label}</span>
+                <span className="whitespace-nowrap overflow-hidden text-[14px]">{item.label}</span>
               )}
             </Link>
           );
@@ -142,9 +142,9 @@ export default function Sidebar({
       </div>
 
       {/* Bottom Actions */}
-      <div className="p-4 border-t border-gray-50 space-y-1">
+      <div className="p-4 border-t border-gray-50 space-y-1 bg-white">
          {!collapsed && (
-          <div className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-2 px-3">
+          <div className="text-[11px] font-semibold text-gray-400 uppercase tracking-wider mb-2 px-3">
             Others
           </div>
         )}
@@ -156,8 +156,8 @@ export default function Sidebar({
              ${collapsed ? 'justify-center' : ''}`}
             title={collapsed ? item.label : undefined}
           >
-            <item.icon className="w-5 h-5 text-gray-400 group-hover:text-gray-600 flex-shrink-0" />
-            {!collapsed && <span className="text-sm">{item.label}</span>}
+            <item.icon className="w-[20px] h-[20px] text-gray-400 group-hover:text-gray-600 flex-shrink-0" />
+            {!collapsed && <span className="text-[14px]">{item.label}</span>}
           </Link>
         ))}
       </div>
