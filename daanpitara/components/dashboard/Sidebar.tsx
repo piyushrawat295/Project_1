@@ -57,38 +57,53 @@ export default function Sidebar({
       className="fixed left-0 top-0 h-screen border-r border-gray-100 bg-white shadow-sm flex flex-col z-50 transition-all duration-300 ease-in-out font-sans"
     >
       {/* Logo & Toggle */}
-      <div className="p-5 border-b border-gray-50 flex items-center justify-between h-[80px]">
-        <AnimatePresence>
-          {!collapsed && (
-            <motion.div 
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              className="flex items-center gap-3 overflow-hidden whitespace-nowrap"
-            >
-               <Image
-                src="/Logo.png"
-                alt="DaanPitara Logo"
-                width={48}
-                height={48}
-                className="w-12 h-12 object-contain"
-              />
-              <div className="flex flex-col">
-                 <span className="text-xl font-bold bg-gradient-to-r from-blue-600 to-green-500 bg-clip-text text-transparent leading-none mb-0.5">
-                  DaanPitara
-                </span>
-                <span className="text-[10px] text-gray-400 font-medium">Your compassion,our code</span>
-              </div>
-            </motion.div>
-          )}
-        </AnimatePresence>
+      {/* Logo & Toggle */}
+      <div className={`relative flex flex-col ${collapsed ? 'items-center justify-center py-4' : 'items-start justify-start pl-6 pt-4'} border-b border-gray-50 bg-white transition-all duration-300`}>
         
+        {/* Toggle Button - Absolute Positioned */}
         <button 
           onClick={() => setCollapsed(!collapsed)}
-          className={`p-1.5 rounded-lg hover:bg-gray-100 text-gray-500 transition-colors ${collapsed ? 'mx-auto' : ''}`}
+          className={`absolute top-4 right-4 p-1.5 rounded-lg hover:bg-gray-100 text-gray-500 transition-colors z-20 ${collapsed ? 'relative top-0 right-0 mx-auto mb-2' : ''}`}
         >
           {collapsed ? <PanelLeftOpen className="w-5 h-5" /> : <PanelLeftClose className="w-5 h-5" />}
         </button>
+
+        <AnimatePresence>
+          {!collapsed ? (
+            <motion.div 
+              initial={{ opacity: 0, scale: 0.9, x: -20 }}
+              animate={{ opacity: 1, scale: 1, x: 0 }}
+              exit={{ opacity: 0, scale: 0.9, x: -20 }}
+              className="flex flex-col items-start mt-0"
+            >
+               <div className="w-[96px] h-[88px] relative mb-0">
+                 <Image
+                  src="/Logo.png"
+                  alt="DaanPitara Logo"
+                  fill
+                  className="object-contain object-left-top"
+                  priority
+                />
+               </div>
+            </motion.div>
+          ) : (
+             // Collapsed State Logo (Small)
+             <motion.div 
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              className="mb-2"
+            >
+               <Image
+                src="/Logo.png"
+                alt="Logo"
+                width={32}
+                height={32}
+                className="w-8 h-8 object-contain"
+              />
+            </motion.div>
+          )}
+        </AnimatePresence>
       </div>
 
       {/* Greeting (Only when open) */}
