@@ -8,7 +8,7 @@ export async function middleware(request: NextRequest) {
 
   // 1. Define protected routes
   const isAdminRoute = pathname.startsWith('/dashboard/admin');
-  // const isNgoRoute = pathname.startsWith('/dashboard/ngo');
+  // const isNgoRoute = pathname.startsWith('/dashboard/ngo-profile');
   const isCallerRoute = pathname.startsWith('/caller/dashboard'); // Assuming requirement mentioned checking this
 
   if (isAdminRoute || isCallerRoute) {

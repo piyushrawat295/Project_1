@@ -18,7 +18,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="en">
+    <html lang="en" suppressHydrationWarning={true}>
       <body
         className="bg-white text-gray-900 antialiased"
         style={{ fontFamily: "Satoshi, sans-serif" }}

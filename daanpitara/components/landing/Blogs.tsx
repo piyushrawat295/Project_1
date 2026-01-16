@@ -31,7 +31,7 @@ export default function Blogs() {
 
             {[1, 2].map((_, i) => (
               <motion.div
-                key={i}
+                key={`blog-${i}`}
                 initial={{ opacity: 0, x: -20 }}
                 whileInView={{ opacity: 1, x: 0 }}
                 transition={{ delay: i * 0.1, duration: 0.5 }}
@@ -112,7 +112,7 @@ export default function Blogs() {
                 "The Digital Transformation of CSR in India: How DaanPitara is Empowering Corporate Social Responsibility",
                 "A Day in the Life of an NGO Volunteer: Creating Real Change with DaanPitara",
               ].map((text, i) => (
-                <div key={i} className="max-w-[236px]">
+                <div key={`highlight-${i}`} className="max-w-[236px]">
                   <span className="text-[#155DFC] text-[12px] leading-[18px]">
                     News
                   </span>

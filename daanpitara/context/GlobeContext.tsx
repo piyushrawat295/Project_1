@@ -35,17 +35,14 @@ export function GlobeProvider({ children }: { children: React.ReactNode }) {
     async function loadNgos() {
       try {
         const dbNgos = await getMapNGOs()
-        // Merge DB NGOs with Static NGOs
-        // Prioritize DB NGOs or append them? Appending.
-        // Also avoid duplicates if IDs clash (though DB IDs starting at 1 might clash with static)
-        // Static IDs are 1-16. DB IDs might start at 1. 
-        // Strategy: Use DB NGOs, keep static only if needed?
-        // Better: For this task "make dynamic", let's prioritize DB but keep static for fullness.
-        // We will shift static IDs or just concat for now. 
-        // Actually, let's just use [...dbNgos, ...staticNgos] but maybe filter unique slugs?
         
-        // Simple concat for demo safety
-        setNgos([...dbNgos, ...staticNgos])
+        // If we have DB NGOs, use them. Otherwise fallback to static.
+        // This prevents any ID collision risks between static (ids 1-16) and DB (ids 1+).
+        if (dbNgos.length > 0) {
+           setNgos(dbNgos);
+        } else {
+           setNgos(staticNgos);
+        }
       } catch (err) {
         console.error("Failed to load dynamic NGOs", err)
       } finally {

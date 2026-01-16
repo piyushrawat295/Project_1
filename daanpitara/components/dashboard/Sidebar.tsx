@@ -5,16 +5,22 @@ import { usePathname } from "next/navigation";
 import { 
   LayoutDashboard, 
   User, 
-  Building2, 
-  FileCheck, 
-  HandHeart, 
-  Megaphone, 
-  MessageSquare, 
-  BarChart3, 
+  Users,
+  Briefcase,
+  Calendar,
+  UserPlus,
+  Folder,
+  Handshake,
+  BarChart,
+  FileText,
+  DollarSign,
+  Award,
+  Globe,
+  TrendingUp,
   Settings,
-  HelpCircle,
   PanelLeftClose,
-  PanelLeftOpen
+  PanelLeftOpen,
+  ChevronDown
 } from "lucide-react";
 import Image from "next/image";
 import { useState } from "react";
@@ -23,19 +29,23 @@ import { useSession } from "next-auth/react";
 
 const sidebarItems = [
   { icon: LayoutDashboard, label: "Dashboard", href: "/dashboard" },
-  { icon: User, label: "My Profile", href: "/dashboard/profile" },
-  { icon: Building2, label: "My NGO Details", href: "/dashboard/ngo" },
-  { icon: FileCheck, label: "Documents & verification", href: "/dashboard/documents" },
-  { icon: BarChart3, label: "Activity Logs", href: "/dashboard/analytics" }, 
-  { icon: Megaphone, label: "Manage Fundraising", href: "/dashboard/fundraising" },
-  { icon: HandHeart, label: "CSR Opportunities", href: "/dashboard/csr" },
-  { icon: MessageSquare, label: "Messages", href: "/dashboard/messages" },
-  { icon: BarChart3, label: "Insights & Analytics", href: "/dashboard/insights" },
+  { icon: User, label: "NGO Profile", href: "/dashboard/ngo-profile" },
+  { icon: Users, label: "Beneficiaries", href: "/dashboard/beneficiaries" },
+  { icon: Briefcase, label: "Projects & Programs", href: "/dashboard/projects" },
+  { icon: Calendar, label: "Events & Activities", href: "/dashboard/events" },
+  { icon: UserPlus, label: "Volunteer Registration", href: "/dashboard/volunteers" },
+  { icon: Folder, label: "Records", href: "/dashboard/records" },
+  { icon: Handshake, label: "Collaboration", href: "/dashboard/collaboration" },
+  { icon: BarChart, label: "Impact & Reports", href: "/dashboard/impact" },
+  { icon: FileText, label: "Documents", href: "/dashboard/documents" },
+  { icon: DollarSign, label: "Funding & Donations", href: "/dashboard/funding" },
+  { icon: Award, label: "Awards & Recognition", href: "/dashboard/awards" },
+  { icon: Globe, label: "Digital Presence", href: "/dashboard/digital-presence" },
+  { icon: TrendingUp, label: "Analytics", href: "/dashboard/analytics" },
 ];
 
 const bottomItems = [
-  { icon: HelpCircle, label: "Help & Support", href: "/dashboard/support" },
-  { icon: Settings, label: "Settings", href: "/dashboard/settings" },
+  { icon: Settings, label: "Settings & Help", href: "/dashboard/settings" },
 ];
 
 export default function Sidebar({ 
@@ -149,7 +159,11 @@ export default function Sidebar({
                 `} 
               />
               {!collapsed && (
-                <span className="whitespace-nowrap overflow-hidden text-[14px]">{item.label}</span>
+                <>
+                  <span className="whitespace-nowrap overflow-hidden text-[14px] flex-1">{item.label}</span>
+                  {/* @ts-ignore */}
+                  {item.hasDropdown && <ChevronDown className="w-4 h-4 text-gray-400" />}
+                </>
               )}
             </Link>
           );

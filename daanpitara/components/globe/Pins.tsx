@@ -1,33 +1,30 @@
 "use client";
 
 import { useMemo } from "react";
-import { ngos } from "@/data/ngos";
 import Marker from "./Marker";
 import { latLngToVector3 } from "./utils";
 import { useGlobe } from "@/context/GlobeContext";
-
 import { useRouter } from "next/navigation";
 
 export default function Pins() {
-  const { selectedLocation, viewMode } = useGlobe();
+  const { selectedLocation, viewMode, allNgos } = useGlobe();
   const router = useRouter();
 
   const pinData = useMemo(
     () =>
-      ngos.map((ngo) => ({
+      allNgos.map((ngo) => ({
         id: ngo.id,
         position: latLngToVector3(ngo.lat, ngo.lng),
         ngo,
       })),
-    []
+    [allNgos]
   );
 
   return (
     <>
       {pinData.map(({ id, position, ngo }) => {
         const isActive =
-          viewMode === "focus" &&
-          selectedLocation?.name === ngo.name;
+          viewMode === "focus" && selectedLocation?.name === ngo.name;
 
         return (
           <Marker

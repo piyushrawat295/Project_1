@@ -55,7 +55,7 @@ export default function Testimonials() {
         <div className="flex flex-col lg:flex-row gap-[56px] justify-center">
           {testimonials.map((item, index) => (
             <motion.div
-              key={index}
+              key={`testimonial-${index}`}
               initial={{ opacity: 0, y: 30 }}
               whileInView={{ opacity: 1, y: 0 }}
               transition={{ delay: index * 0.1, duration: 0.5 }}
@@ -79,7 +79,7 @@ export default function Testimonials() {
               <div className="flex gap-1">
                 {[...Array(item.rating)].map((_, i) => (
                   <Star
-                    key={i}
+                    key={`star-${i}`}
                     className="w-4 h-4 fill-[#F5B301] text-[#F5B301]"
                   />
                 ))}
