@@ -8,10 +8,10 @@ export async function middleware(request: NextRequest) {
 
   // 1. Define protected routes
   const isAdminRoute = pathname.startsWith('/dashboard/admin');
-  const isNgoRoute = pathname.startsWith('/dashboard/ngo');
+  // const isNgoRoute = pathname.startsWith('/dashboard/ngo');
   const isCallerRoute = pathname.startsWith('/caller/dashboard'); // Assuming requirement mentioned checking this
 
-  if (isAdminRoute || isNgoRoute || isCallerRoute) {
+  if (isAdminRoute || isCallerRoute) {
     if (!token) {
       return NextResponse.redirect(new URL('/signin', request.url));
     }
@@ -22,13 +22,7 @@ export async function middleware(request: NextRequest) {
        return NextResponse.redirect(new URL('/', request.url)); // Or unauthorized page
     }
 
-    if (isNgoRoute && role !== 'ngo') {
-       // If default signup is NGO, this is where they land.
-       // A user with role 'user' shouldn't access this? 
-       // User requirement said: "If role === 'NGO' -> redirect to /ngo/dashboard"
-       // So ensure only NGO access.
-       return NextResponse.redirect(new URL('/', request.url));
-    }
+
     
     if (isCallerRoute && role !== 'caller_agent') {
         return NextResponse.redirect(new URL('/', request.url));

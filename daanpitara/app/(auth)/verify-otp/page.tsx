@@ -1,6 +1,6 @@
 'use client';
 
-import { useActionState, useState, use } from 'react';
+import { useActionState, useState, Suspense } from 'react';
 import { resetPassword } from '@/actions/forgot-password';
 import Link from 'next/link';
 import { ArrowLeft, Lock, KeyRound } from 'lucide-react';
@@ -8,7 +8,7 @@ import { useSearchParams } from 'next/navigation';
 
 import AuthBranding from '@/components/auth/AuthBranding';
 
-export default function VerifyOtpPage() {
+function VerifyOtpContent() {
   const searchParams = useSearchParams();
   const email = searchParams.get('email') || '';
   
@@ -110,5 +110,13 @@ export default function VerifyOtpPage() {
        {/* Right Side - Branding */}
        <AuthBranding />
     </div>
+  );
+}
+
+export default function VerifyOtpPage() {
+  return (
+    <Suspense fallback={<div className="h-screen w-screen flex items-center justify-center">Loading...</div>}>
+      <VerifyOtpContent />
+    </Suspense>
   );
 }

@@ -10,19 +10,28 @@ import Link from 'next/link';
 
 import { usePathname } from 'next/navigation';
 
-export default function Navbar({ session }: { session: any }) {
-  const pathname = usePathname();
-  const isAuthPage = pathname === '/signin' || pathname === '/signup' || pathname === '/forgot-password' || pathname === '/verify-otp';
+import { useSession } from "next-auth/react";
 
+export default function Navbar() {
+  const { data: session } = useSession();
+  const pathname = usePathname();
+  // Hooks must be called before any early returns
+  
+  // Other state hooks
   const [open, setOpen] = useState(false);
   const [profileOpen, setProfileOpen] = useState(false);
-
-  /* 🎯 Search Logic */
   const [query, setQuery] = useState("");
   const [debouncedQuery, setDebouncedQuery] = useState("");
   const [category, setCategory] = useState<string>("All");
   const [showResults, setShowResults] = useState(false);
   const [isFilterModalOpen, setIsFilterModalOpen] = useState(false);
+  
+  // Custom hooks
+  const { setSelectedLocation, setViewMode } = useGlobe();
+  
+  // Conditional logic AFTER all hooks
+  const isAuthPage = pathname === '/signin' || pathname === '/signup' || pathname === '/forgot-password' || pathname === '/verify-otp';
+  const isDashboard = pathname?.startsWith('/dashboard');
 
   /* Debounce Effect */
   useEffect(() => {
@@ -32,7 +41,8 @@ export default function Navbar({ session }: { session: any }) {
     return () => clearTimeout(timer);
   }, [query]);
 
-  const { setSelectedLocation, setViewMode } = useGlobe();
+  // Now we can return early if needed
+  if (isAuthPage || isDashboard) return null;
 
   /* 🔍 Filter NGOs */
   const filteredNgos = ngos
@@ -79,7 +89,7 @@ export default function Navbar({ session }: { session: any }) {
   const categories = ["All", "Education", "Health", "Environment", "Elderly Care", "Multi-domain"];
 
   const user = session?.user;
-  const dashboardLink = user?.role === 'admin' ? '/admin' : user?.role === 'ngo' ? '/ngo' : '/';
+  const dashboardLink = user?.role === 'admin' ? '/admin' : user?.role === 'ngo' ? '/dashboard' : '/';
 
   if (isAuthPage) return null;
 

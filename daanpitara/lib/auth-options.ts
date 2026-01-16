@@ -91,12 +91,10 @@ export const authOptions: NextAuthOptions = {
           const [newUser] = await db.insert(users).values({
             name: user.name || 'Unknown',
             email: user.email,
+            image: user.image, // Save Google profile image
             role: 'ngo', // Defaulting to NGO
             provider: account?.provider || 'credentials',
-            organizationName: null, // Will need to be filled later? Or maybe user is just a donor? 
-                                    // User said "its for ngo so defult set for ngo". 
-                                    // But social login lacks org name. 
-                                    // Ideally we redirect them to an onboarding page, but for now we create as is.
+            organizationName: null, 
           }).returning();
           dbUser = newUser;
         } catch (error) {
@@ -108,6 +106,10 @@ export const authOptions: NextAuthOptions = {
       // Inject rule into the user object so it propagates to JWT
       user.role = dbUser.role;
       user.id = dbUser.id.toString();
+      // Ensure image is up to date in the session user object if it came from DB
+      if (dbUser.image) {
+        user.image = dbUser.image;
+      }
 
       return true;
     },
@@ -115,6 +117,7 @@ export const authOptions: NextAuthOptions = {
       if (user) {
         token.role = user.role;
         token.id = user.id;
+        token.picture = user.image;
       }
       return token;
     },
@@ -126,6 +129,14 @@ export const authOptions: NextAuthOptions = {
       return session;
     },
     async redirect({ url, baseUrl }) {
+       // If the redirect URL is the homepage or signin page, redirect to dashboard
+       if (url === baseUrl || url === `${baseUrl}/signin`) {
+         return `${baseUrl}/dashboard`;
+       }
+       // Allows relative callback URLs
+       if (url.startsWith("/")) return `${baseUrl}${url}`;
+       // Allows callback URLs on the same origin
+       else if (new URL(url).origin === baseUrl) return url;
        return baseUrl;
     },
   },

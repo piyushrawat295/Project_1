@@ -1,6 +1,8 @@
 "use client";
 
 import { usePathname } from "next/navigation";
+
+
 import Link from "next/link";
 import {
   Facebook,
@@ -21,8 +23,9 @@ export default function Footer() {
     pathname === "/signup" ||
     pathname === "/forgot-password" ||
     pathname === "/verify-otp";
+  const isDashboard = pathname?.startsWith('/dashboard');
 
-  if (isAuthPage) return null;
+  if (isAuthPage || isDashboard) return null;
 
   return (
     <footer className="w-full bg-[#0F2D3F] text-white">
