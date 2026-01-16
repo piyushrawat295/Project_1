@@ -1,6 +1,6 @@
 "use client";
 
-import { useLoadScript, GoogleMap, MarkerF } from "@react-google-maps/api";
+import { useJsApiLoader, GoogleMap, MarkerF } from "@react-google-maps/api";
 import { useState, useMemo, useCallback, useEffect } from "react";
 import { MapPin, Loader2 } from "lucide-react";
 
@@ -23,7 +23,8 @@ export default function LocationPicker({
   readOnly = false
 }: LocationPickerProps) {
   
-  const { isLoaded, loadError } = useLoadScript({
+  const { isLoaded, loadError } = useJsApiLoader({
+    id: "google-map-script",
     googleMapsApiKey: process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY || "",
     libraries: libraries,
   });

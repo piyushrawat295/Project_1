@@ -5,7 +5,6 @@ import { Search, Menu, X, SlidersHorizontal } from "lucide-react";
 import FilterModal from "./FilterModal";
 import { motion } from "framer-motion";
 import { useGlobe } from "@/context/GlobeContext";
-import { ngos } from "@/data/ngos";
 import Link from 'next/link';
 
 import { usePathname } from 'next/navigation';
@@ -27,8 +26,8 @@ export default function Navbar() {
   const [isFilterModalOpen, setIsFilterModalOpen] = useState(false);
   
   // Custom hooks
-  const { setSelectedLocation, setViewMode } = useGlobe();
-  
+  const { setSelectedLocation, setViewMode, allNgos } = useGlobe();
+
   // Conditional logic AFTER all hooks
   const isAuthPage = pathname === '/signin' || pathname === '/signup' || pathname === '/forgot-password' || pathname === '/verify-otp';
   const isDashboard = pathname?.startsWith('/dashboard');
@@ -44,8 +43,9 @@ export default function Navbar() {
   // Now we can return early if needed
   if (isAuthPage || isDashboard) return null;
 
-  /* 🔍 Filter NGOs */
-  const filteredNgos = ngos
+  /* 🔍 Filter NGOs from Context */
+  // Use allNgos instead of static imported "ngos"
+  const filteredNgos = allNgos
     .filter((ngo) => {
       const q = debouncedQuery.trim().toLowerCase();
       
@@ -69,7 +69,7 @@ export default function Navbar() {
     })
     .slice(0, 5); // Limit to 5 results
 
-  function handleSelect(ngo: (typeof ngos)[number]) {
+  function handleSelect(ngo: any) { // Using any or explicit type from context
     setSelectedLocation(ngo);
     setViewMode("map");
     setOpen(false);

@@ -27,9 +27,14 @@ export default function GoogleMapComponent() {
   const [map, setMap] = useState<google.maps.Map | null>(null);
   const [infoWindowOpen, setInfoWindowOpen] = useState(false);
 
+  // Libraries must be defined outside component to prevent infinite re-renders
+  // But here we need to match LocationPicker.tsx exactly
+  const libraries = useMemo(() => ["places"], []);
+
   const { isLoaded } = useJsApiLoader({
     id: "google-map-script",
     googleMapsApiKey: process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY || "",
+    libraries: libraries as any, // Cast because likely "places" | "geometry" type mismatch from library
   });
 
   const center = useMemo(() => {
