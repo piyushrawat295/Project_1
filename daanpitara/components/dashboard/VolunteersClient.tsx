@@ -18,11 +18,51 @@ import {
   Check
 } from "lucide-react";
 
+import { createVolunteer } from "@/actions/ngo-features";
+import { useRouter } from "next/navigation";
+
 export default function VolunteersClient({ initialData, initialStats }: { initialData: any[], initialStats: any }) {
+  const router = useRouter();
   const [data, setData] = useState(initialData);
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [selectedVolunteer, setSelectedVolunteer] = useState<any>(null);
+  const [formData, setFormData] = useState({
+     name: "",
+     email: "",
+     phone: "",
+     location: "",
+     skills: "",
+     availability: "Weekends"
+  });
+
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
+     setFormData({ ...formData, [e.target.name]: e.target.value });
+  };
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setIsSubmitting(true);
+    try {
+       const result = await createVolunteer(formData);
+       if (result.success) {
+           setIsModalOpen(false);
+           setFormData({ name: "", email: "", phone: "", location: "", skills: "", availability: "Weekends" });
+           router.refresh(); 
+           alert("Volunteer registered successfully!");
+       } else {
+           alert("Failed: " + result.error);
+       }
+    } catch (err) {
+        console.error(err);
+        alert("An error occurred.");
+    } finally {
+        setIsSubmitting(false);
+    }
+  };
 
   return (
-    <div className="p-8 space-y-8">
+    <div className="p-8 space-y-8 relative">
       {/* Header */}
       <div className="flex justify-between items-start">
         <div>
@@ -34,7 +74,10 @@ export default function VolunteersClient({ initialData, initialStats }: { initia
             <Download className="w-4 h-4" />
             Export Data
           </button>
-          <button className="flex items-center gap-2 px-4 py-2 text-white bg-[#0EA5E9] rounded-lg hover:bg-[#0284c7]">
+          <button 
+            onClick={() => setIsModalOpen(true)}
+            className="flex items-center gap-2 px-4 py-2 text-white bg-[#0EA5E9] rounded-lg hover:bg-[#0284c7]"
+          >
             <Plus className="w-4 h-4" />
             Register Volunteer
           </button>
@@ -45,25 +88,25 @@ export default function VolunteersClient({ initialData, initialStats }: { initia
        <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
         <StatsCard 
           title="Total Volunteers" 
-          value={initialStats.total} 
+          value={initialStats?.total || 0} 
           icon={Users}
           color="bg-[#0EA5E9]" 
         />
         <StatsCard 
           title="Active Volunteers" 
-          value={initialStats.active} 
+          value={initialStats?.active || 0} 
           icon={CheckCircle2}
           color="bg-[#0284c7]"
         />
         <StatsCard 
           title="Pending Approval" 
-          value={initialStats.pending} 
+          value={initialStats?.pending || 0} 
           icon={Clock}
           color="bg-[#0369a1]"
         />
         <StatsCard 
           title="Total Hours" 
-          value={initialStats.totalHours} 
+          value={initialStats?.totalHours || 0} 
           icon={Star}
           color="bg-[#075985]" // Darkest blue/slate
         />
@@ -91,7 +134,12 @@ export default function VolunteersClient({ initialData, initialStats }: { initia
       {/* Volunteer Cards Grid */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
          {data.map((volunteer, index) => (
-             <VolunteerCard key={volunteer.id || index} volunteer={volunteer} index={index} />
+             <VolunteerCard 
+                key={volunteer.id || index} 
+                volunteer={volunteer} 
+                index={index} 
+                onView={() => setSelectedVolunteer(volunteer)} 
+             />
          ))}
          {data.length === 0 && (
             <div className="col-span-3 text-center py-12 text-gray-500">
@@ -99,6 +147,143 @@ export default function VolunteersClient({ initialData, initialStats }: { initia
             </div>
          )}
       </div>
+
+      {/* Register Volunteer Modal */}
+      {isModalOpen && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+           <div className="bg-white rounded-2xl p-6 w-full max-w-2xl max-h-[90vh] overflow-y-auto">
+              <div className="flex justify-between items-center mb-6">
+                 <h2 className="text-xl font-bold text-gray-900">Register New Volunteer</h2>
+                 <button onClick={() => setIsModalOpen(false)} className="text-gray-500 hover:text-gray-700">
+                    <Plus className="w-6 h-6 rotate-45" />
+                 </button>
+              </div>
+              
+              <form onSubmit={handleSubmit} className="space-y-4">
+                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                       <label className="block text-sm font-medium text-gray-700 mb-1">Full Name *</label>
+                       <input required name="name" value={formData.name} onChange={handleInputChange} className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-[#0EA5E9] outline-none" placeholder="Enter full name" />
+                    </div>
+                    <div>
+                       <label className="block text-sm font-medium text-gray-700 mb-1">Email *</label>
+                       <input required type="email" name="email" value={formData.email} onChange={handleInputChange} className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-[#0EA5E9] outline-none" placeholder="email@example.com" />
+                    </div>
+                 </div>
+
+                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                       <label className="block text-sm font-medium text-gray-700 mb-1">Phone</label>
+                       <input name="phone" value={formData.phone} onChange={handleInputChange} className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-[#0EA5E9] outline-none" placeholder="+91 XXXXX XXXXX" />
+                    </div>
+                    <div>
+                       <label className="block text-sm font-medium text-gray-700 mb-1">Location</label>
+                       <input name="location" value={formData.location} onChange={handleInputChange} className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-[#0EA5E9] outline-none" placeholder="City" />
+                    </div>
+                 </div>
+
+                 <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">Skills (comma separated)</label>
+                    <input name="skills" value={formData.skills} onChange={handleInputChange} className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-[#0EA5E9] outline-none" placeholder="Teaching, Event Management, IT Support" />
+                 </div>
+
+                 <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">Availability</label>
+                    <select name="availability" value={formData.availability} onChange={handleInputChange} className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-[#0EA5E9] outline-none">
+                       <option value="Weekends">Weekends</option>
+                       <option value="Weekdays">Weekdays</option>
+                       <option value="Anytime">Anytime</option>
+                    </select>
+                 </div>
+
+                 <div className="flex gap-3 pt-4 border-t">
+                    <button type="button" onClick={() => setIsModalOpen(false)} className="flex-1 px-4 py-2 border rounded-lg text-gray-700 hover:bg-gray-50">Cancel</button>
+                    <button type="submit" disabled={isSubmitting} className="flex-1 px-4 py-2 bg-[#0EA5E9] text-white rounded-lg hover:bg-[#0284c7] disabled:opacity-50">
+                       {isSubmitting ? "Registering..." : "Register Volunteer"}
+                    </button>
+                 </div>
+              </form>
+           </div>
+        </div>
+      )}
+
+      {/* Volunteer Details Modal */}
+      {selectedVolunteer && (
+          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+              <div className="bg-white rounded-2xl p-6 w-full max-w-lg">
+                  <div className="flex justify-between items-center mb-6">
+                      <h2 className="text-xl font-bold text-gray-900">Volunteer Details</h2>
+                      <button onClick={() => setSelectedVolunteer(null)} className="text-gray-500 hover:text-gray-700">
+                          <Plus className="w-6 h-6 rotate-45" />
+                      </button>
+                  </div>
+                  
+                  <div className="flex items-center gap-4 mb-6">
+                      <div className="w-16 h-16 bg-[#075985] rounded-xl flex items-center justify-center text-white font-bold text-2xl">
+                          {selectedVolunteer.name?.charAt(0)}
+                      </div>
+                      <div>
+                          <h3 className="text-xl font-bold text-gray-900">{selectedVolunteer.name}</h3>
+                          <div className="flex items-center gap-3 mt-1">
+                              <span className="bg-green-100 text-green-700 px-2 py-0.5 rounded text-xs font-medium">
+                                  {selectedVolunteer.status || 'Active'}
+                              </span>
+                              <div className="flex items-center gap-1 text-yellow-500 text-sm">
+                                  <Star className="w-4 h-4 fill-current" />
+                                  <span>4.8</span>
+                              </div>
+                          </div>
+                      </div>
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-6 mb-6">
+                      <div>
+                          <p className="text-sm text-gray-500 mb-1">Email</p>
+                          <p className="font-medium text-gray-900 truncate">{selectedVolunteer.email}</p>
+                      </div>
+                       <div>
+                          <p className="text-sm text-gray-500 mb-1">Phone</p>
+                          <p className="font-medium text-gray-900">{selectedVolunteer.phone || 'N/A'}</p>
+                      </div>
+                       <div>
+                          <p className="text-sm text-gray-500 mb-1">Location</p>
+                          <p className="font-medium text-gray-900">{selectedVolunteer.location || 'N/A'}</p>
+                      </div>
+                       <div>
+                          <p className="text-sm text-gray-500 mb-1">Availability</p>
+                          <p className="font-medium text-gray-900">{selectedVolunteer.availability || 'Weekends'}</p>
+                      </div>
+                       <div>
+                          <p className="text-sm text-gray-500 mb-1">Hours Contributed</p>
+                          <p className="font-medium text-gray-900">120 hours</p>
+                      </div>
+                       <div>
+                          <p className="text-sm text-gray-500 mb-1">Join Date</p>
+                          <p className="font-medium text-gray-900">{new Date(selectedVolunteer.createdAt).toLocaleDateString()}</p>
+                      </div>
+                  </div>
+
+                  <div className="mb-6">
+                      <p className="text-sm text-gray-500 mb-2">Skills</p>
+                      <div className="flex gap-2 flex-wrap">
+                          {selectedVolunteer.skills?.split(',').map((skill: string) => (
+                              <span key={skill} className="px-3 py-1 bg-blue-50 text-blue-600 rounded-full text-sm">
+                                  {skill.trim()}
+                              </span>
+                          ))}
+                          {!selectedVolunteer.skills && <span className="text-gray-400 text-sm">No skills listed</span>}
+                      </div>
+                  </div>
+
+                  <button 
+                      onClick={() => setSelectedVolunteer(null)}
+                      className="w-full py-3 bg-[#0EA5E9] text-white rounded-xl font-medium hover:bg-[#0284c7]"
+                  >
+                      Close
+                  </button>
+              </div>
+          </div>
+      )}
     </div>
   );
 }
@@ -117,7 +302,7 @@ function StatsCard({ title, value, icon: Icon, color }: any) {
   );
 }
 
-function VolunteerCard({ volunteer, index }: { volunteer: any, index: number }) {
+function VolunteerCard({ volunteer, index, onView }: { volunteer: any, index: number, onView: () => void }) {
     // Mocking missing data for UI correctness as per user request
     const status = index % 3 === 0 ? "Active" : index % 3 === 1 ? "Pending" : "Active"; 
     const isPending = status === "Pending";
@@ -191,7 +376,10 @@ function VolunteerCard({ volunteer, index }: { volunteer: any, index: number }) 
             </div>
 
             <div className="flex gap-2">
-                <button className="flex-1 py-2 text-sm font-medium text-blue-600 bg-blue-50 hover:bg-blue-100 rounded-lg flex items-center justify-center gap-2">
+                <button 
+                  onClick={onView}
+                  className="flex-1 py-2 text-sm font-medium text-blue-600 bg-blue-50 hover:bg-blue-100 rounded-lg flex items-center justify-center gap-2"
+                >
                     <Eye className="w-4 h-4" />
                     View
                 </button>

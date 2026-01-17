@@ -13,20 +13,67 @@ import {
   Eye,
   Download,
   Trash2,
-  File
+  File,
+  Plus
 } from "lucide-react";
 
+
+import { createRecord } from "@/actions/ngo-features";
+import { useRouter } from "next/navigation";
+
 export default function RecordsClient({ initialData, initialStats }: { initialData: any[], initialStats: any }) {
+  const router = useRouter();
   const [data, setData] = useState(initialData);
   const [view, setView] = useState("grid");
   const [searchTerm, setSearchTerm] = useState("");
+
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [formData, setFormData] = useState({
+      title: "",
+      type: "Records",
+      category: "Reports",
+      description: "",
+      url: "" 
+  });
+
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
+      setFormData({ ...formData, [e.target.name]: e.target.value });
+  };
+
+  const handleSubmit = async (e: React.FormEvent) => {
+      e.preventDefault();
+      setIsSubmitting(true);
+      try {
+          const result = await createRecord(formData);
+          if (result.success) {
+              setIsModalOpen(false);
+              setFormData({ 
+                  title: "",
+                  type: "Records",
+                  category: "Reports",
+                  description: "",
+                  url: ""
+              });
+              router.refresh();
+              alert("Record uploaded successfully!");
+          } else {
+              alert("Failed: " + result.error);
+          }
+      } catch (err) {
+          console.error(err);
+      } finally {
+          setIsSubmitting(false);
+      }
+  };
+
 
   const filteredData = data.filter(item => 
     item.name.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
   return (
-    <div className="p-8 space-y-8">
+    <div className="p-8 space-y-8 relative">
       {/* Header */}
       <div className="flex justify-between items-start">
         <div>
@@ -48,7 +95,10 @@ export default function RecordsClient({ initialData, initialStats }: { initialDa
                   <List className="w-4 h-4" />
               </button>
            </div>
-          <button className="flex items-center gap-2 px-4 py-2 text-white bg-[#0EA5E9] rounded-lg hover:bg-[#0284c7]">
+          <button 
+             onClick={() => setIsModalOpen(true)}
+             className="flex items-center gap-2 px-4 py-2 text-white bg-[#0EA5E9] rounded-lg hover:bg-[#0284c7]"
+          >
             <Upload className="w-4 h-4" />
             Upload Record
           </button>
@@ -116,6 +166,65 @@ export default function RecordsClient({ initialData, initialStats }: { initialDa
               </div>
            )}
        </div>
+
+       {/* Upload Record Modal */}
+       {isModalOpen && (
+           <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50">
+               <div className="bg-white rounded-2xl p-6 w-full max-w-lg">
+                   <div className="flex justify-between items-center mb-6">
+                       <h2 className="text-xl font-bold text-gray-900">Upload New Record</h2>
+                       <button onClick={() => setIsModalOpen(false)} className="text-gray-500 hover:text-gray-700">
+                           <Plus className="w-6 h-6 rotate-45" />
+                       </button>
+                   </div>
+                   <form onSubmit={handleSubmit} className="space-y-4">
+                       <div>
+                           <label className="block text-sm font-medium text-gray-700 mb-1">Title *</label>
+                           <input required name="title" value={formData.title} onChange={handleInputChange} className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-[#0EA5E9] outline-none" placeholder="Enter record title" />
+                       </div>
+                       
+                       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                           <div>
+                               <label className="block text-sm font-medium text-gray-700 mb-1">Type *</label>
+                               <select name="type" value={formData.type} onChange={handleInputChange} className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-[#0EA5E9] outline-none">
+                                   <option value="Records">Records</option>
+                                   <option value="Invoices">Invoices</option>
+                                   <option value="Media">Media</option>
+                               </select>
+                           </div>
+                           <div>
+                               <label className="block text-sm font-medium text-gray-700 mb-1">Category *</label>
+                               <select name="category" value={formData.category} onChange={handleInputChange} className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-[#0EA5E9] outline-none">
+                                   <option value="Reports">Reports</option>
+                                   <option value="Projects">Projects</option>
+                                   <option value="Events">Events</option>
+                                   <option value="Finance">Finance</option>
+                               </select>
+                           </div>
+                       </div>
+
+                       <div>
+                           <label className="block text-sm font-medium text-gray-700 mb-1">Description</label>
+                           <textarea name="description" value={formData.description} onChange={handleInputChange} rows={3} className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-[#0EA5E9] outline-none" placeholder="Brief description of the record"></textarea>
+                       </div>
+
+                       <div className="border-2 border-dashed border-gray-200 rounded-xl p-8 mb-6 flex flex-col items-center justify-center cursor-not-allowed bg-gray-50">
+                            {/* Mock Upload Field */}
+                            <Upload className="w-10 h-10 text-gray-400 mb-2" />
+                            <p className="text-sm text-gray-500">Click to upload (Mock)</p>
+                            <p className="text-xs text-gray-400 mt-1">PDF, DOC, JPG, PNG (Max 100MB)</p>
+                       </div>
+
+                       <div className="flex gap-3 pt-4 border-t">
+                           <button type="button" onClick={() => setIsModalOpen(false)} className="flex-1 px-4 py-2 border rounded-lg text-gray-700 hover:bg-gray-50">Cancel</button>
+                           <button type="submit" disabled={isSubmitting} className="flex-1 px-4 py-2 bg-[#0EA5E9] text-white rounded-lg hover:bg-[#0284c7] disabled:opacity-50">
+                               {isSubmitting ? "Uploading..." : "Upload Record"}
+                           </button>
+                       </div>
+                   </form>
+               </div>
+           </div>
+       )}
     </div>
   );
 }

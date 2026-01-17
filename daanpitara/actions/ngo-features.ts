@@ -1,7 +1,7 @@
 "use server";
 
 import { db } from "@/lib/db";
-import { beneficiaries, projects, teamMembers, ngos, events, campaigns, documents, proposals, csrOpportunities } from "@/lib/schema";
+import { beneficiaries, projects, teamMembers, ngos, events, campaigns, documents, proposals, csrOpportunities, volunteers, boardMembers, partners, donations } from "@/lib/schema";
 import { eq, desc, and, ilike, or, sql } from "drizzle-orm";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth-options";
@@ -75,6 +75,37 @@ export async function getBeneficiaries(query?: string, category?: string) {
   }
 }
 
+export async function createBeneficiary(data: any) {
+  const session = await getServerSession(authOptions);
+  if (!session?.user?.id) return { error: "Unauthorized" };
+
+  try {
+     const ngo = await db.query.ngos.findFirst({
+      where: eq(ngos.ownerId, parseInt(session.user.id)),
+    });
+
+    if (!ngo) return { error: "No NGO profile found" };
+
+    await db.insert(beneficiaries).values({
+      ngoId: ngo.id,
+      name: data.name,
+      age: parseInt(data.age) || 0,
+      gender: data.gender,
+      category: data.category,
+      projectId: data.projectId ? parseInt(data.projectId) : null,
+      location: data.location,
+      phone: data.phone,
+      // notes: data.notes, // Schema update pending for notes? Added in schema.ts.
+    });
+
+    revalidatePath("/dashboard/beneficiaries");
+    return { success: true };
+  } catch (error) {
+    console.error("Create beneficiary error:", error);
+    return { error: "Failed to create beneficiary" };
+  }
+}
+
 // --- Projects ---
 
 export async function getProjects(query?: string, status?: string) {
@@ -142,39 +173,35 @@ export async function getVolunteers(query?: string, status?: string) {
 
     if (!ngo) return { error: "No NGO profile found" };
 
-    // We will assume "rolename" containing 'Volunteer' are volunteers
-    // Since we don't have a status, we'll return all as active for now? 
-    // Or we just return them. The UI distinguishes Active vs Pending. 
-    // Current DB schema doesn't support status for team members.
-    // We will just return them and maybe mock status in UI or randomize for demo if acceptable, 
-    // but better to just show them as Active if we can't tell.
-    // UNLESS we use 'role' to store status? e.g. "Volunteer (Pending)"? 
-    // That's a bit hacky but works without schema change.
-    // For now, let's just fetch them.
+    const conditions = [eq(volunteers.ngoId, ngo.id)];
 
-    const conditions = [
-        eq(teamMembers.ngoId, ngo.id),
-        // ilike(teamMembers.role, '%Volunteer%') // Only fetch if they have volunteer in role name?
-        // Or maybe fetch ALL team members and let client side filter? 
-        // Let's filter for anything that looks like a volunteer or if distinct from staff.
-        // Actually, let's just fetch all team members for now, or maybe only those with role 'Volunteer'
-    ];
-    // Adding filter for 'Volunteer' role to separate from Board Members/Staff if possible.
-    // If table is empty, user might need to seed data.
-    
     if (query) {
-        conditions.push(ilike(teamMembers.name, `%${query}%`));
+       const search = or(
+           ilike(volunteers.name, `%${query}%`),
+           ilike(volunteers.skills, `%${query}%`)
+       );
+       if (search) conditions.push(search);
     }
 
-    const data = await db.select().from(teamMembers)
-        .where(and(...conditions))
-        .orderBy(desc(teamMembers.createdAt));
+    if (status && status !== "All" && status !== "All Status") {
+        conditions.push(eq(volunteers.status, status));
+    }
+
+    const data = await db.select().from(volunteers)
+      .where(and(...conditions))
+      .orderBy(desc(volunteers.createdAt));
+    
+    // Stats from actual data
+    const allVolunteers = await db.select().from(volunteers).where(eq(volunteers.ngoId, ngo.id));
+    
+    // Calculate hours (mock logic if field missing, or just 0)
+    // We don't have hours in schema yet, assumed per user requirement to just have basic registration
     
     const stats = {
-        total: data.length,
-        active: data.length, // Placeholder
-        pending: 0, // Placeholder
-        totalHours: 250 // Placeholder (no field for hours in DB)
+        total: allVolunteers.length,
+        active: allVolunteers.filter(v => v.status === 'Active').length,
+        pending: allVolunteers.filter(v => v.status === 'Pending').length,
+        totalHours: 0 
     };
 
     return { data, stats };
@@ -182,6 +209,36 @@ export async function getVolunteers(query?: string, status?: string) {
   } catch (error) {
       console.error("Error fetching volunteers:", error);
       return { error: "Failed to fetch volunteers" };
+  }
+}
+
+export async function createVolunteer(data: any) {
+  const session = await getServerSession(authOptions);
+  if (!session?.user?.id) return { error: "Unauthorized" };
+
+  try {
+     const ngo = await db.query.ngos.findFirst({
+      where: eq(ngos.ownerId, parseInt(session.user.id)),
+    });
+
+    if (!ngo) return { error: "No NGO profile found" };
+
+    await db.insert(volunteers).values({
+      ngoId: ngo.id,
+      name: data.name,
+      email: data.email,
+      phone: data.phone,
+      location: data.location,
+      skills: data.skills,
+      availability: data.availability,
+      status: 'Pending', // Default to pending
+    });
+
+    revalidatePath("/dashboard/volunteers");
+    return { success: true };
+  } catch (error) {
+    console.error("Create volunteer error:", error);
+    return { error: "Failed to create volunteer" };
   }
 }
 
@@ -387,3 +444,237 @@ export async function getCollaborations(query?: string, status?: string) {
   }
 }
 
+
+
+export async function createTeamMember(data: any) {
+  const session = await getServerSession(authOptions);
+  if (!session?.user?.id) return { error: "Unauthorized" };
+
+  try {
+     const ngo = await db.query.ngos.findFirst({
+      where: eq(ngos.ownerId, parseInt(session.user.id)),
+    });
+
+    if (!ngo) return { error: "No NGO profile found" };
+
+    await db.insert(teamMembers).values({
+      ngoId: ngo.id,
+      name: data.name,
+      role: data.role,
+      email: data.email,
+      phone: data.phone,
+    });
+
+    revalidatePath("/dashboard/ngo-profile");
+    return { success: true };
+  } catch (error) {
+    console.error("Create team member error:", error);
+    return { error: "Failed to create team member" };
+  }
+}
+
+export async function createBoardMember(data: any) {
+  const session = await getServerSession(authOptions);
+  if (!session?.user?.id) return { error: "Unauthorized" };
+
+  try {
+     const ngo = await db.query.ngos.findFirst({
+      where: eq(ngos.ownerId, parseInt(session.user.id)),
+    });
+
+    if (!ngo) return { error: "No NGO profile found" };
+
+    await db.insert(boardMembers).values({
+      ngoId: ngo.id,
+      name: data.name,
+      role: data.role, // Designation
+      email: data.email,
+      phone: data.phone,
+    });
+
+    revalidatePath("/dashboard/ngo-profile");
+    return { success: true };
+  } catch (error) {
+    console.error("Create board member error:", error);
+    return { error: "Failed to create board member" };
+  }
+}
+
+export async function createProject(data: any) {
+  const session = await getServerSession(authOptions);
+  if (!session?.user?.id) return { error: "Unauthorized" };
+
+  try {
+    const ngo = await db.query.ngos.findFirst({
+      where: eq(ngos.ownerId, parseInt(session.user.id)),
+    });
+
+    if (!ngo) return { error: "No NGO profile found" };
+
+    await db.insert(projects).values({
+      ngoId: ngo.id,
+      title: data.title,
+      startDate: data.startDate ? new Date(data.startDate) : null,
+      endDate: data.endDate ? new Date(data.endDate) : null,
+      sector: data.sector, // Theme
+      location: data.location,
+      beneficiariesTargeted: data.targetBeneficiaries ? parseInt(data.targetBeneficiaries) : 0,
+      totalBudget: data.budget ? parseFloat(data.budget) : 0,
+      status: data.fundingStatus === 'Seeking funds' ? 'seeking_funding' : 'active', // Mapping status
+    });
+
+    revalidatePath("/dashboard/projects");
+    return { success: true };
+  } catch (error) {
+    console.error("Create project error:", error);
+    return { error: "Failed to create project" };
+  }
+}
+
+export async function createEvent(data: any) {
+  const session = await getServerSession(authOptions);
+  if (!session?.user?.id) return { error: "Unauthorized" };
+
+  try {
+    const ngo = await db.query.ngos.findFirst({
+      where: eq(ngos.ownerId, parseInt(session.user.id)),
+    });
+
+    if (!ngo) return { error: "No NGO profile found" };
+
+    await db.insert(events).values({
+      ngoId: ngo.id,
+      title: data.name,
+      date: new Date(data.date),
+      location: data.location,
+      beneficiariesCount: data.expectedBeneficiaries ? parseInt(data.expectedBeneficiaries) : 0,
+      description: data.description,
+      status: 'upcoming' 
+    });
+
+
+    revalidatePath("/dashboard/events");
+    return { success: true };
+  } catch (error) {
+    console.error("Create event error:", error);
+    return { error: "Failed to create event" };
+  }
+}
+
+export async function createPartner(data: any) {
+  const session = await getServerSession(authOptions);
+  if (!session?.user?.id) return { error: "Unauthorized" };
+
+  try {
+    const ngo = await db.query.ngos.findFirst({
+      where: eq(ngos.ownerId, parseInt(session.user.id)),
+    });
+
+    if (!ngo) return { error: "No NGO profile found" };
+
+    await db.insert(partners).values({
+      ngoId: ngo.id,
+      organizationName: data.organizationName,
+      type: data.type,
+      contactPerson: data.contactPerson,
+      email: data.email,
+      phone: data.phone,
+      location: data.location,
+      description: data.description,
+      status: 'active'
+    });
+
+    revalidatePath("/dashboard/collaboration");
+    return { success: true };
+  } catch (error) {
+    console.error("Create partner error:", error);
+    return { error: "Failed to create partner" };
+  }
+}
+
+export async function createDonation(data: any) {
+  const session = await getServerSession(authOptions);
+  if (!session?.user?.id) return { error: "Unauthorized" };
+
+  try {
+    const ngo = await db.query.ngos.findFirst({
+      where: eq(ngos.ownerId, parseInt(session.user.id)),
+    });
+
+    if (!ngo) return { error: "No NGO profile found" };
+
+    await db.insert(donations).values({
+      ngoId: ngo.id,
+      donorName: data.donorName,
+      amount: parseFloat(data.amount),
+      date: new Date(data.date),
+      projectId: data.projectId ? parseInt(data.projectId) : null,
+      type: 'Offline', // Defaulting to Offline for manual entry
+      status: 'received'
+    });
+
+    revalidatePath("/dashboard/funding");
+    return { success: true };
+  } catch (error) {
+    console.error("Create donation error:", error);
+    return { error: "Failed to create donation" };
+  }
+}
+
+export async function createRecord(data: any) {
+  const session = await getServerSession(authOptions);
+  if (!session?.user?.id) return { error: "Unauthorized" };
+
+  try {
+    const ngo = await db.query.ngos.findFirst({
+      where: eq(ngos.ownerId, parseInt(session.user.id)),
+    });
+
+    if (!ngo) return { error: "No NGO profile found" };
+
+    await db.insert(documents).values({
+      ngoId: ngo.id,
+      name: data.title,
+      type: data.type, // 'record' or file extension could go here, treating as type for now
+      category: data.category,
+      description: data.description,
+      url: data.url || '#', // Placeholder if no actual file upload yet
+      status: 'pending'
+    });
+
+    revalidatePath("/dashboard/records");
+    return { success: true };
+  } catch (error) {
+    console.error("Create record error:", error);
+    return { error: "Failed to create record" };
+  }
+}
+
+export async function createDocument(data: any) {
+  const session = await getServerSession(authOptions);
+  if (!session?.user?.id) return { error: "Unauthorized" };
+
+  try {
+    const ngo = await db.query.ngos.findFirst({
+      where: eq(ngos.ownerId, parseInt(session.user.id)),
+    });
+
+    if (!ngo) return { error: "No NGO profile found" };
+
+    await db.insert(documents).values({
+      ngoId: ngo.id,
+      name: data.name, // e.g., "Registration Certificate"
+      type: 'compliance_doc',
+      category: 'compliance',
+      url: data.url || '#',
+      expiryDate: data.expiryDate ? new Date(data.expiryDate) : null,
+      status: 'verified' // Assuming self-uploaded docs are verified or pending admin review
+    });
+
+    revalidatePath("/dashboard/documents");
+    return { success: true };
+  } catch (error) {
+    console.error("Create document error:", error);
+    return { error: "Failed to create document" };
+  }
+}

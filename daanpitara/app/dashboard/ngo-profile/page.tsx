@@ -24,6 +24,8 @@ export default async function NGODetailsPage() {
     objectives: ngoData.objectives || "",
     lat: ngoData.lat || 0,
     lng: ngoData.lng || 0,
+    teamMembers: ngoData.teamMembers || [],
+    boardMembers: ngoData.boardMembers || [],
   } : null;
 
   return <NGODetailsClient initialData={initialData} />;

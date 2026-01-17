@@ -1,7 +1,7 @@
 "use server";
 
 import { db } from "@/lib/db";
-import { users, ngos, documents, activityLogs, messages, campaigns, projects, events, beneficiaries } from "@/lib/schema";
+import { users, ngos, documents, activityLogs, messages, campaigns, projects, events, beneficiaries, teamMembers, boardMembers } from "@/lib/schema";
 import { eq, desc, asc, sql } from "drizzle-orm";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth-options";
@@ -124,10 +124,16 @@ export async function getNGOProfile() {
   if (!session?.user?.id) return null;
 
   try {
-     const ngo = await db.query.ngos.findFirst({
+    const ngo = await db.query.ngos.findFirst({
       where: eq(ngos.ownerId, parseInt(session.user.id)),
     });
-    return ngo;
+
+    if (!ngo) return null;
+
+    const team = await db.select().from(teamMembers).where(eq(teamMembers.ngoId, ngo.id));
+    const board = await db.select().from(boardMembers).where(eq(boardMembers.ngoId, ngo.id));
+
+    return { ...ngo, teamMembers: team, boardMembers: board };
   } catch (error) {
     console.error("Error fetching NGO profile:", error);
     return null;

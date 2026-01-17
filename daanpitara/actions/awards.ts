@@ -41,17 +41,21 @@ export async function createAward(formData: FormData) {
       if (!ngo) return { error: "No NGO profile found" };
 
       const title = formData.get("title") as string;
-      const year = formData.get("year") as string;
+      const dateStr = formData.get("date") as string;
       const description = formData.get("description") as string;
 
-      if (!title || !year) {
-          return { error: "Title and Year are required" };
+      if (!title || !dateStr) {
+          return { error: "Title and Date are required" };
       }
+
+      const dateObj = new Date(dateStr);
+      const year = dateObj.getFullYear().toString();
 
       await db.insert(awards).values({
           ngoId: ngo.id,
           title,
           year,
+          date: dateObj,
           description,
           createdAt: new Date(),
       });

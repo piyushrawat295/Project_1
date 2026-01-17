@@ -53,11 +53,14 @@ export type NGO = typeof ngos.$inferSelect;
 export type NewNGO = typeof ngos.$inferInsert;
 
 // ... existing documents table ...
+
 export const documents = pgTable('documents', {
   id: serial('id').primaryKey(),
   ngoId: integer('ngo_id').references(() => ngos.id).notNull(),
   name: text('name').notNull(),
   type: text('type').notNull(),
+  category: text('category'), // Added
+  description: text('description'), // Added
   url: text('url').notNull(),
   status: text('status').default('pending').notNull(),
   expiryDate: timestamp('expiry_date'),
@@ -65,8 +68,21 @@ export const documents = pgTable('documents', {
   updatedAt: timestamp('updated_at').defaultNow().notNull(),
 });
 
-
 // ... (events, beneficiaries, projects, boardMembers, teamMembers are here)
+
+export const partners = pgTable('partners', {
+  id: serial('id').primaryKey(),
+  ngoId: integer('ngo_id').references(() => ngos.id).notNull(),
+  organizationName: text('organization_name').notNull(),
+  type: text('type').notNull(), // NGO, Corporate, Government, etc.
+  contactPerson: text('contact_person'),
+  email: text('email').notNull(),
+  phone: text('phone'),
+  location: text('location'),
+  description: text('description'),
+  status: text('status').default('active'),
+  createdAt: timestamp('created_at').defaultNow().notNull(),
+});
 
 export const activityLogs = pgTable('activity_logs', {
   id: serial('id').primaryKey(),
@@ -136,7 +152,22 @@ export const beneficiaries = pgTable('beneficiaries', {
   category: text('category'), // Child, Women, Elderly, etc.
   projectId: integer('project_id'), // Optional link to a project
   location: text('location'),
+  phone: text('phone'),
+  notes: text('notes'),
   registeredAt: timestamp('registered_at').defaultNow().notNull(),
+});
+
+export const volunteers = pgTable('volunteers', {
+  id: serial('id').primaryKey(),
+  ngoId: integer('ngo_id').references(() => ngos.id).notNull(),
+  name: text('name').notNull(),
+  email: text('email').notNull(),
+  phone: text('phone'),
+  location: text('location'),
+  skills: text('skills'), // Comma separated string
+  availability: text('availability'),
+  status: text('status').default('Active'),
+  createdAt: timestamp('created_at').defaultNow().notNull(),
 });
 
 export const projects = pgTable('projects', {
@@ -154,7 +185,19 @@ export const projects = pgTable('projects', {
   createdAt: timestamp('created_at').defaultNow().notNull(),
 });
 
-export const boardMembers = pgTable('board_members', {
+export const donations = pgTable('donations', {
+  id: serial('id').primaryKey(),
+  ngoId: integer('ngo_id').references(() => ngos.id).notNull(),
+  donorName: text('donor_name').notNull(),
+  amount: doublePrecision('amount').notNull(),
+  date: timestamp('date').notNull(),
+  projectId: integer('project_id').references(() => projects.id),
+  type: text('type'), // Online, Offline
+  status: text('status').default('received'),
+  createdAt: timestamp('created_at').defaultNow().notNull(),
+});
+
+export const boardMembers = pgTable('ngo_board_members', {
   id: serial('id').primaryKey(),
   ngoId: integer('ngo_id').references(() => ngos.id).notNull(),
   name: text('name').notNull(),
@@ -180,12 +223,15 @@ export type Event = typeof events.$inferSelect;
 export type Beneficiary = typeof beneficiaries.$inferSelect;
 export type Project = typeof projects.$inferSelect;
 export type BoardMember = typeof boardMembers.$inferSelect;
+export type Volunteer = typeof volunteers.$inferSelect;
 export type TeamMember = typeof teamMembers.$inferSelect;
 export type ActivityLog = typeof activityLogs.$inferSelect;
 export type Message = typeof messages.$inferSelect;
 export type Campaign = typeof campaigns.$inferSelect;
 export type CSROpportunity = typeof csrOpportunities.$inferSelect;
 export type Proposal = typeof proposals.$inferSelect;
+export type Partner = typeof partners.$inferSelect;
+export type Donation = typeof donations.$inferSelect;
 
 export const awards = pgTable('awards', {
   id: serial('id').primaryKey(),
