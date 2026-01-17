@@ -132,12 +132,12 @@ export default function Footer() {
 
             {/* Legal Links Desktop */}
             <div className="mt-auto hidden pt-8 lg:flex justify-end gap-6 text-[13px] text-gray-400">
-              <span className="hover:text-white cursor-pointer">
+              <Link href="/terms" className="hover:text-white cursor-pointer">
                 Terms & Conditions
-              </span>
-              <span className="hover:text-white cursor-pointer">
+              </Link>
+              <Link href="/privacy-policy" className="hover:text-white cursor-pointer">
                 Privacy Policies
-              </span>
+              </Link>
               <span className="hover:text-white cursor-pointer">Cookies</span>
             </div>
           </div>
@@ -146,8 +146,8 @@ export default function Footer() {
         {/* Mobile Bottom Section */}
         <div className="mt-12 flex flex-col items-center gap-4 border-t border-gray-700 pt-8 text-center text-sm text-gray-400 lg:hidden">
           <div className="flex flex-wrap justify-center gap-4">
-            <span>Terms & Conditions</span>
-            <span>Privacy Policies</span>
+            <Link href="/terms">Terms & Conditions</Link>
+            <Link href="/privacy-policy">Privacy Policies</Link>
             <span>Cookies</span>
           </div>
           <p>© {new Date().getFullYear()} DaanPitara, All Right Reserved.</p>
