@@ -18,7 +18,7 @@ import {
   Check
 } from "lucide-react";
 
-import { createVolunteer } from "@/actions/ngo-features";
+import { createVolunteer, deleteVolunteer } from "@/actions/ngo-features";
 import { useRouter } from "next/navigation";
 
 export default function VolunteersClient({ initialData, initialStats }: { initialData: any[], initialStats: any }) {
@@ -61,6 +61,22 @@ export default function VolunteersClient({ initialData, initialStats }: { initia
     }
   };
 
+  const handleDelete = async (id: number) => {
+    if(!confirm("Are you sure you want to delete this volunteer?")) return;
+    try {
+        const result = await deleteVolunteer(id);
+        if (result.success) {
+            router.refresh(); // Refresh to update list
+            alert("Volunteer deleted successfully");
+        } else {
+           alert("Failed to delete: " + result.error);
+        }
+    } catch (err) {
+        console.error(err);
+        alert("An error occurred");
+    }
+  };
+
   return (
     <div className="p-8 space-y-8 relative">
       {/* Header */}
@@ -84,8 +100,8 @@ export default function VolunteersClient({ initialData, initialStats }: { initia
         </div>
       </div>
 
-       {/* Stats Cards */}
-       <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
+      {/* Stats Cards */}
+      <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
         <StatsCard 
           title="Total Volunteers" 
           value={initialStats?.total || 0} 
@@ -108,7 +124,7 @@ export default function VolunteersClient({ initialData, initialStats }: { initia
           title="Total Hours" 
           value={initialStats?.totalHours || 0} 
           icon={Star}
-          color="bg-[#075985]" // Darkest blue/slate
+          color="bg-[#075985]"
         />
       </div>
 
@@ -139,6 +155,7 @@ export default function VolunteersClient({ initialData, initialStats }: { initia
                 volunteer={volunteer} 
                 index={index} 
                 onView={() => setSelectedVolunteer(volunteer)} 
+                onDelete={() => handleDelete(volunteer.id)}
              />
          ))}
          {data.length === 0 && (
@@ -266,12 +283,11 @@ export default function VolunteersClient({ initialData, initialStats }: { initia
                   <div className="mb-6">
                       <p className="text-sm text-gray-500 mb-2">Skills</p>
                       <div className="flex gap-2 flex-wrap">
-                          {selectedVolunteer.skills?.split(',').map((skill: string) => (
+                          {selectedVolunteer.skills ? selectedVolunteer.skills.split(',').map((skill: string) => (
                               <span key={skill} className="px-3 py-1 bg-blue-50 text-blue-600 rounded-full text-sm">
                                   {skill.trim()}
                               </span>
-                          ))}
-                          {!selectedVolunteer.skills && <span className="text-gray-400 text-sm">No skills listed</span>}
+                          )) : <span className="text-gray-400 text-sm">No skills listed</span>}
                       </div>
                   </div>
 
@@ -302,19 +318,17 @@ function StatsCard({ title, value, icon: Icon, color }: any) {
   );
 }
 
-function VolunteerCard({ volunteer, index, onView }: { volunteer: any, index: number, onView: () => void }) {
-    // Mocking missing data for UI correctness as per user request
-    const status = index % 3 === 0 ? "Active" : index % 3 === 1 ? "Pending" : "Active"; 
+function VolunteerCard({ volunteer, index, onView, onDelete }: { volunteer: any, index: number, onView: () => void, onDelete: () => void }) {
+    // Determine status
+    const status = volunteer.status || "Pending"; 
     const isPending = status === "Pending";
-    const rating = (4 + (index % 10) / 10).toFixed(1);
-    const location = "Mumbai"; // Mock
+    const location = volunteer.location || "Location not specified";
     const joined = new Date(volunteer.createdAt).toLocaleDateString("en-US", { month: 'short', year: 'numeric' });
-    const hours = 10 + (index * 5);
     
     // Fallbacks
     const name = volunteer.name || "Unknown Volunteer";
-    const email = volunteer.email || "no-email@example.com";
-    const phone = volunteer.phone || "+91 98765 43210";
+    const email = volunteer.email || "No email";
+    const phone = volunteer.phone || "No phone";
     
     return (
         <div className="bg-white border border-gray-100 rounded-xl p-6 shadow-sm hover:shadow-md transition-shadow">
@@ -325,10 +339,7 @@ function VolunteerCard({ volunteer, index, onView }: { volunteer: any, index: nu
                   </div>
                   <div>
                       <h3 className="font-bold text-gray-900">{name}</h3>
-                      <div className="flex items-center gap-1 text-yellow-500 text-xs">
-                          <Star className="w-3 h-3 fill-current" />
-                          <span>{rating}</span>
-                      </div>
+                      <p className="text-xs text-gray-400">Volunteer</p>
                   </div>
                </div>
                <span className={`px-3 py-1 rounded-full text-xs font-medium ${isPending ? 'bg-orange-100 text-orange-700' : 'bg-green-100 text-green-700'}`}>
@@ -351,25 +362,22 @@ function VolunteerCard({ volunteer, index, onView }: { volunteer: any, index: nu
                 </div>
                   <div className="flex items-center gap-2 text-sm text-gray-500">
                     <Calendar className="w-4 h-4" />
-                    <span>Weekends</span> {/* Availability Mock */}
+                    <span>{volunteer.availability || "Availability not set"}</span> 
                 </div>
             </div>
 
-            <div className="flex gap-2 flex-wrap mb-6">
-                {["Teaching", "Event Management", "IT Support"].slice(0, 2 + (index % 2)).map(tag => (
+            <div className="flex gap-2 flex-wrap mb-6 min-h-[24px]">
+                {volunteer.skills ? volunteer.skills.split(',').slice(0,3).map((tag:string) => (
                     <span key={tag} className="px-2 py-1 bg-blue-50 text-blue-600 rounded text-xs">
-                        {tag}
+                        {tag.trim()}
                     </span>
-                ))}
+                )) : (
+                     <span className="text-xs text-gray-400">No specific skills listed</span>
+                )}
             </div>
 
             <div className="flex justify-between items-center pt-4 border-t border-gray-50 mb-4">
-                 <div className="text-center">
-                     <p className="text-xl font-bold text-gray-900">{hours}</p>
-                     <p className="text-xs text-gray-400">Hours</p>
-                 </div>
-                 <div className="bg-gray-100 w-px h-8"></div>
-                  <div className="text-center">
+                  <div className="text-center w-full">
                      <p className="text-sm font-bold text-gray-900">{joined}</p>
                      <p className="text-xs text-gray-400">Joined</p>
                  </div>
@@ -389,7 +397,10 @@ function VolunteerCard({ volunteer, index, onView }: { volunteer: any, index: nu
                         Approve
                     </button>
                  ) : (
-                    <button className="p-2 text-red-500 hover:bg-red-50 rounded-lg">
+                    <button 
+                        onClick={onDelete} 
+                        className="p-2 text-red-500 hover:bg-red-50 rounded-lg"
+                    >
                         <Trash2 className="w-4 h-4" />
                     </button>
                  )}

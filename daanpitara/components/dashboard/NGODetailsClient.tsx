@@ -12,8 +12,10 @@ import {
   Eye, 
 } from "lucide-react";
 import { saveNGODetails } from "@/actions/dashboard";
-import { createTeamMember, createBoardMember } from "@/actions/ngo-features";
+import { createTeamMember, createBoardMember, deleteTeamMember, deleteBoardMember } from "@/actions/ngo-features";
 import { useRouter } from "next/navigation";
+
+import LocationPickerMap from "@/components/map/LocationPickerMap";
 
 interface NGODetailsClientProps {
   initialData: any;
@@ -34,11 +36,14 @@ export default function NGODetailsClient({ initialData }: NGODetailsClientProps)
     focusAreas: (initialData?.focusAreas || ["Education", "Health"]) as string[],
     operationalState: initialData?.operationalStates?.[0] || "",
     operationalDistricts: initialData?.operationalDistricts?.join(", ") || "",
+    lat: initialData?.lat || 0,
+    lng: initialData?.lng || 0,
   });
 
   // Modal states
   const [isTeamModalOpen, setIsTeamModalOpen] = useState(false);
   const [isBoardModalOpen, setIsBoardModalOpen] = useState(false);
+  const [isMapModalOpen, setIsMapModalOpen] = useState(false);
 
   // Form states for modals
   const [teamForm, setTeamForm] = useState({ name: "", role: "", email: "", phone: "" });
@@ -48,6 +53,11 @@ export default function NGODetailsClient({ initialData }: NGODetailsClientProps)
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
     const { name, value } = e.target;
     setFormData(prev => ({ ...prev, [name]: value }));
+  };
+
+  const handleLocationSave = (lat: number, lng: number) => {
+     setFormData(prev => ({ ...prev, lat, lng }));
+     setIsMapModalOpen(false);
   };
 
   const handleSave = async () => {
@@ -65,6 +75,8 @@ export default function NGODetailsClient({ initialData }: NGODetailsClientProps)
         focusAreas: formData.focusAreas,
         operationalStates: [formData.operationalState],
         operationalDistricts: formData.operationalDistricts.split(",").map((s: string) => s.trim()).filter(Boolean),
+        lat: formData.lat,
+        lng: formData.lng,
       });
 
       if (result.success) {
@@ -117,6 +129,24 @@ export default function NGODetailsClient({ initialData }: NGODetailsClientProps)
       } finally {
           setIsSubmittingModal(false);
       }
+  };
+
+  const handleDeleteTeam = async (id: number) => {
+      if(!confirm("Are you sure?")) return;
+      try {
+          const res = await deleteTeamMember(id);
+          if(res.success) router.refresh();
+          else alert("Failed to delete");
+      } catch(e) { console.error(e); }
+  };
+
+  const handleDeleteBoard = async (id: number) => {
+      if(!confirm("Are you sure?")) return;
+      try {
+          const res = await deleteBoardMember(id);
+          if(res.success) router.refresh();
+          else alert("Failed to delete");
+      } catch(e) { console.error(e); }
   };
 
   return (
@@ -273,9 +303,31 @@ export default function NGODetailsClient({ initialData }: NGODetailsClientProps)
 
        {/* Operational Geography */}
        <div className="bg-white rounded-2xl p-6 shadow-sm border border-gray-100">
-         <h3 className="text-lg font-bold text-gray-900 mb-6 flex items-center gap-2">
-            <MapPin className="w-5 h-5 text-blue-500" /> Operational Geography
-         </h3>
+         <div className="flex justify-between items-center mb-6">
+             <h3 className="text-lg font-bold text-gray-900 flex items-center gap-2">
+                <MapPin className="w-5 h-5 text-blue-500" /> Operational Geography
+             </h3>
+             <button
+                 onClick={() => setIsMapModalOpen(true)}
+                 className="flex items-center gap-2 px-3 py-1.5 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-lg text-sm font-medium transition-colors"
+            >
+                <MapPin className="w-4 h-4 text-blue-600" />
+                {formData.lat && formData.lng ? "Update Location" : "Set Location on Map"}
+            </button>
+         </div>
+         
+         {formData.lat !== 0 && (
+             <div className="mb-6 p-4 bg-blue-50 border border-blue-100 rounded-lg flex items-center gap-3">
+                 <div className="p-2 bg-blue-100 rounded-full text-blue-600">
+                     <MapPin className="w-5 h-5" />
+                 </div>
+                 <div>
+                     <p className="text-sm font-semibold text-blue-900">Location Set</p>
+                     <p className="text-xs text-blue-700">Latitude: {formData.lat.toFixed(6)}, Longitude: {formData.lng.toFixed(6)}</p>
+                 </div>
+             </div>
+         )}
+
          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div>
                <label className="block text-sm font-medium text-gray-700 mb-1">State</label>
@@ -328,7 +380,7 @@ export default function NGODetailsClient({ initialData }: NGODetailsClientProps)
                    <div className="text-xs text-gray-600 hidden md:block">
                      <p>{member.phone}</p>
                   </div>
-                  <button className="text-red-500 hover:text-red-700">
+                  <button onClick={() => handleDeleteBoard(member.id)} className="text-red-500 hover:text-red-700">
                      <Trash2 className="w-4 h-4" />
                   </button>
                </div>
@@ -362,7 +414,7 @@ export default function NGODetailsClient({ initialData }: NGODetailsClientProps)
                    <div className="text-xs text-gray-600 hidden md:block">
                      <p>{member.email}</p>
                   </div>
-                  <button className="text-red-500 hover:text-red-700">
+                  <button onClick={() => handleDeleteTeam(member.id)} className="text-red-500 hover:text-red-700">
                      <Trash2 className="w-4 h-4" />
                   </button>
                </div>
@@ -375,25 +427,25 @@ export default function NGODetailsClient({ initialData }: NGODetailsClientProps)
 
        {/* Add Board Member Modal */}
        {isBoardModalOpen && (
-           <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-               <div className="bg-white rounded-2xl p-6 w-full max-w-md">
-                   <h2 className="text-xl font-bold mb-4">Add Board Member</h2>
+           <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+               <div className="bg-white rounded-2xl p-6 w-full max-w-md shadow-xl">
+                   <h2 className="text-xl font-bold mb-4 text-gray-900">Add Board Member</h2>
                    <form onSubmit={handleBoardSubmit} className="space-y-4">
                        <div>
-                           <label className="block text-sm font-medium mb-1">Name *</label>
-                           <input required value={boardForm.name} onChange={(e) => setBoardForm({...boardForm, name: e.target.value})} className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 outline-none" />
+                           <label className="block text-sm font-medium mb-1 text-gray-700">Name *</label>
+                           <input required value={boardForm.name} onChange={(e) => setBoardForm({...boardForm, name: e.target.value})} className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 outline-none bg-white text-gray-900" />
                        </div>
                        <div>
-                           <label className="block text-sm font-medium mb-1">Designation *</label>
-                           <input required value={boardForm.role} onChange={(e) => setBoardForm({...boardForm, role: e.target.value})} className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 outline-none" />
+                           <label className="block text-sm font-medium mb-1 text-gray-700">Designation *</label>
+                           <input required value={boardForm.role} onChange={(e) => setBoardForm({...boardForm, role: e.target.value})} className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 outline-none bg-white text-gray-900" />
                        </div>
                        <div>
-                           <label className="block text-sm font-medium mb-1">Email</label>
-                           <input type="email" value={boardForm.email} onChange={(e) => setBoardForm({...boardForm, email: e.target.value})} className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 outline-none" />
+                           <label className="block text-sm font-medium mb-1 text-gray-700">Email</label>
+                           <input type="email" value={boardForm.email} onChange={(e) => setBoardForm({...boardForm, email: e.target.value})} className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 outline-none bg-white text-gray-900" />
                        </div>
                        <div>
-                           <label className="block text-sm font-medium mb-1">Phone</label>
-                           <input value={boardForm.phone} onChange={(e) => setBoardForm({...boardForm, phone: e.target.value})} className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 outline-none" />
+                           <label className="block text-sm font-medium mb-1 text-gray-700">Phone</label>
+                           <input value={boardForm.phone} onChange={(e) => setBoardForm({...boardForm, phone: e.target.value})} className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 outline-none bg-white text-gray-900" />
                        </div>
                        <div className="flex gap-3 mt-6">
                            <button type="button" onClick={() => setIsBoardModalOpen(false)} className="flex-1 py-2 border rounded-lg hover:bg-gray-50">Cancel</button>
@@ -408,25 +460,25 @@ export default function NGODetailsClient({ initialData }: NGODetailsClientProps)
 
        {/* Add Team Member Modal */}
        {isTeamModalOpen && (
-           <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-               <div className="bg-white rounded-2xl p-6 w-full max-w-md">
-                   <h2 className="text-xl font-bold mb-4">Add Team Member</h2>
+           <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+               <div className="bg-white rounded-2xl p-6 w-full max-w-md shadow-xl">
+                   <h2 className="text-xl font-bold mb-4 text-gray-900">Add Team Member</h2>
                    <form onSubmit={handleTeamSubmit} className="space-y-4">
                        <div>
-                           <label className="block text-sm font-medium mb-1">Name *</label>
-                           <input required value={teamForm.name} onChange={(e) => setTeamForm({...teamForm, name: e.target.value})} className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 outline-none" />
+                           <label className="block text-sm font-medium mb-1 text-gray-700">Name *</label>
+                           <input required value={teamForm.name} onChange={(e) => setTeamForm({...teamForm, name: e.target.value})} className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 outline-none bg-white text-gray-900" />
                        </div>
                        <div>
-                           <label className="block text-sm font-medium mb-1">Role *</label>
-                           <input required value={teamForm.role} onChange={(e) => setTeamForm({...teamForm, role: e.target.value})} className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 outline-none" />
+                           <label className="block text-sm font-medium mb-1 text-gray-700">Role *</label>
+                           <input required value={teamForm.role} onChange={(e) => setTeamForm({...teamForm, role: e.target.value})} className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 outline-none bg-white text-gray-900" />
                        </div>
                        <div>
-                           <label className="block text-sm font-medium mb-1">Email</label>
-                           <input type="email" value={teamForm.email} onChange={(e) => setTeamForm({...teamForm, email: e.target.value})} className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 outline-none" />
+                           <label className="block text-sm font-medium mb-1 text-gray-700">Email</label>
+                           <input type="email" value={teamForm.email} onChange={(e) => setTeamForm({...teamForm, email: e.target.value})} className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 outline-none bg-white text-gray-900" />
                        </div>
                        <div>
-                           <label className="block text-sm font-medium mb-1">Phone</label>
-                           <input value={teamForm.phone} onChange={(e) => setTeamForm({...teamForm, phone: e.target.value})} className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 outline-none" />
+                           <label className="block text-sm font-medium mb-1 text-gray-700">Phone</label>
+                           <input value={teamForm.phone} onChange={(e) => setTeamForm({...teamForm, phone: e.target.value})} className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 outline-none bg-white text-gray-900" />
                        </div>
                        <div className="flex gap-3 mt-6">
                            <button type="button" onClick={() => setIsTeamModalOpen(false)} className="flex-1 py-2 border rounded-lg hover:bg-gray-50">Cancel</button>
@@ -435,6 +487,23 @@ export default function NGODetailsClient({ initialData }: NGODetailsClientProps)
                            </button>
                        </div>
                    </form>
+               </div>
+           </div>
+       )}
+
+       {/* Map Modal */}
+       {isMapModalOpen && (
+           <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-6">
+               <div className="bg-white rounded-3xl p-6 w-full max-w-3xl shadow-xl">
+                    <h2 className="text-2xl font-bold text-gray-900 mb-2">Set Operational Location</h2>
+                    <p className="text-gray-500 mb-6">Click on the map to pin-point your NGO's main office or center of operations.</p>
+                    
+                    <LocationPickerMap 
+                        initialLat={formData.lat}
+                        initialLng={formData.lng}
+                        onSave={handleLocationSave}
+                        onCancel={() => setIsMapModalOpen(false)}
+                    />
                </div>
            </div>
        )}

@@ -391,52 +391,38 @@ export async function getCollaborations(query?: string, status?: string) {
 
     if (!ngo) return { error: "No NGO profile found" };
 
-    // We fetch proposals joined with CSR opportunities to represent collaborations
-    // A collaboration is essentially an interaction with a CSR partner
-    
-    const baseQuery = db.select({
-        id: proposals.id,
-        status: proposals.status,
-        createdAt: proposals.createdAt,
-        companyName: csrOpportunities.companyName,
-        sector: csrOpportunities.sector,
-        location: csrOpportunities.location,
-        description: csrOpportunities.description,
-        opportunityTitle: csrOpportunities.title
-    })
-    .from(proposals)
-    .innerJoin(csrOpportunities, eq(proposals.opportunityId, csrOpportunities.id))
-    .where(eq(proposals.ngoId, ngo.id));
-
-    // Execute to filter in JS or use complex SQL conditions
-    // Using JS filter for simplicity with flexible query
-    const allCollabs = await baseQuery;
-
-    let filtered = allCollabs;
+    const conditions = [eq(partners.ngoId, ngo.id)];
 
     if (query) {
-         const lowerQ = query.toLowerCase();
-         filtered = filtered.filter(c => 
-             c.companyName.toLowerCase().includes(lowerQ) || 
-             c.sector.toLowerCase().includes(lowerQ)
-         );
+        const searchCondition = or(
+            ilike(partners.organizationName, `%${query}%`),
+            ilike(partners.contactPerson, `%${query}%`)
+        );
+        if (searchCondition) {
+            conditions.push(searchCondition);
+        }
     }
 
-    if (status && status !== 'All Status') {
-         filtered = filtered.filter(c => c.status?.toLowerCase() === status.toLowerCase());
+    if (status && status !== 'All' && status !== 'All Status') {
+         conditions.push(ilike(partners.status, status));
     }
     
     // Sort
-    filtered.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
+    const data = await db.select().from(partners)
+        .where(and(...conditions))
+        .orderBy(desc(partners.createdAt));
+
+    // Stats
+    const allPartners = await db.select().from(partners).where(eq(partners.ngoId, ngo.id));
 
     const stats = {
-        total: allCollabs.length,
-        active: allCollabs.filter(c => c.status === 'approved' || c.status === 'active').length, // Assuming 'approved' is used
-        pending: allCollabs.filter(c => c.status === 'submitted' || c.status === 'pending').length,
-        jointProjs: allCollabs.filter(c => c.status === 'approved').length // Proxy for joint projects
+        total: allPartners.length,
+        active: allPartners.filter(p => p.status?.toLowerCase() === 'active').length,
+        pending: allPartners.filter(p => p.status?.toLowerCase() === 'pending').length,
+        jointProjs: allPartners.filter(p => p.type === 'Corporate').length // Proxy stat if no real link
     };
 
-    return { data: filtered, stats };
+    return { data, stats };
 
   } catch (error) {
     console.error("Error fetching collaborations:", error);
@@ -678,3 +664,122 @@ export async function createDocument(data: any) {
     return { error: "Failed to create document" };
   }
 }
+
+// --- Delete Actions ---
+
+export async function deleteBeneficiary(id: number) {
+  const session = await getServerSession(authOptions);
+  if (!session?.user?.id) return { error: "Unauthorized" };
+  try {
+     await db.delete(beneficiaries).where(eq(beneficiaries.id, id));
+     revalidatePath("/dashboard/beneficiaries");
+     return { success: true };
+  } catch (err) {
+      return { error: "Failed to delete beneficiary" };
+  }
+}
+
+export async function deleteProject(id: number) {
+  const session = await getServerSession(authOptions);
+  if (!session?.user?.id) return { error: "Unauthorized" };
+  try {
+     // NOTE: dependent records (beneficiaries, donations) might fail if no cascade delete.
+     // For now assuming cascade or soft delete not required strictly.
+     await db.delete(projects).where(eq(projects.id, id));
+     revalidatePath("/dashboard/projects");
+     return { success: true };
+  } catch (err) {
+      console.error(err);
+      return { error: "Failed to delete project (may have linked data)" };
+  }
+}
+
+export async function deleteVolunteer(id: number) {
+  const session = await getServerSession(authOptions);
+  if (!session?.user?.id) return { error: "Unauthorized" };
+  try {
+     await db.delete(volunteers).where(eq(volunteers.id, id));
+     revalidatePath("/dashboard/volunteers");
+     return { success: true };
+  } catch (err) {
+      return { error: "Failed to delete volunteer" };
+  }
+}
+
+export async function deletePartner(id: number) {
+  const session = await getServerSession(authOptions);
+  if (!session?.user?.id) return { error: "Unauthorized" };
+  try {
+     await db.delete(partners).where(eq(partners.id, id));
+     revalidatePath("/dashboard/collaboration");
+     return { success: true };
+  } catch (err) {
+      return { error: "Failed to delete partner" };
+  }
+}
+
+export async function deleteEvent(id: number) {
+  const session = await getServerSession(authOptions);
+  if (!session?.user?.id) return { error: "Unauthorized" };
+  try {
+     await db.delete(events).where(eq(events.id, id));
+     revalidatePath("/dashboard/events"); // Assuming this is the path
+     revalidatePath("/dashboard/digital-presence"); // or here
+     return { success: true };
+  } catch (err) {
+      return { error: "Failed to delete event" };
+  }
+}
+
+export async function deleteRecord(id: number) {
+  const session = await getServerSession(authOptions);
+  if (!session?.user?.id) return { error: "Unauthorized" };
+  try {
+     await db.delete(documents).where(eq(documents.id, id));
+     revalidatePath("/dashboard/records");
+     return { success: true };
+  } catch (err) {
+      return { error: "Failed to delete record" };
+  }
+}
+
+export async function deleteDocument(id: number) {
+    return deleteRecord(id); // Alias
+}
+
+export async function deleteCampaign(id: number) {
+  const session = await getServerSession(authOptions);
+  if (!session?.user?.id) return { error: "Unauthorized" };
+  try {
+     await db.delete(campaigns).where(eq(campaigns.id, id));
+     revalidatePath("/dashboard/funding");
+     return { success: true };
+  } catch (err) {
+      return { error: "Failed to delete campaign" };
+  }
+}
+
+export async function deleteTeamMember(id: number) {
+  const session = await getServerSession(authOptions);
+  if (!session?.user?.id) return { error: "Unauthorized" };
+  try {
+     await db.delete(teamMembers).where(eq(teamMembers.id, id));
+     revalidatePath("/dashboard/ngo-profile");
+     return { success: true };
+  } catch (err) {
+      return { error: "Failed to delete team member" };
+  }
+}
+
+export async function deleteBoardMember(id: number) {
+  const session = await getServerSession(authOptions);
+  if (!session?.user?.id) return { error: "Unauthorized" };
+  try {
+     await db.delete(boardMembers).where(eq(boardMembers.id, id));
+     revalidatePath("/dashboard/ngo-profile");
+     return { success: true };
+  } catch (err) {
+      return { error: "Failed to delete board member" };
+  }
+}
+

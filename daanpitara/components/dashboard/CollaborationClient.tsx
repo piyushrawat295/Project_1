@@ -15,11 +15,12 @@ import {
   Star,
   Eye,
   MessageSquare,
-  Trash2
+  Trash2,
+  X
 } from "lucide-react";
 
 
-import { createPartner } from "@/actions/ngo-features";
+import { createPartner, deletePartner } from "@/actions/ngo-features";
 import { useRouter } from "next/navigation";
 
 export default function CollaborationClient({ initialData, initialStats }: { initialData: any[], initialStats: any }) {
@@ -27,6 +28,7 @@ export default function CollaborationClient({ initialData, initialStats }: { ini
   const [data, setData] = useState(initialData);
 
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [selectedPartner, setSelectedPartner] = useState<any>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [formData, setFormData] = useState({
       organizationName: "",
@@ -67,6 +69,22 @@ export default function CollaborationClient({ initialData, initialStats }: { ini
           console.error(err);
       } finally {
           setIsSubmitting(false);
+      }
+  };
+
+  const handleDelete = async (id: number) => {
+      if(!confirm("Are you sure you want to delete this partner?")) return;
+      try {
+          const result = await deletePartner(id);
+          if (result.success) {
+              router.refresh();
+              alert("Partner deleted successfully");
+          } else {
+              alert("Failed to delete: " + result.error);
+          }
+      } catch (err) {
+          console.error(err);
+          alert("An error occurred");
       }
   };
 
@@ -138,7 +156,13 @@ export default function CollaborationClient({ initialData, initialStats }: { ini
        {/* Collaborative Partners Grid */}
        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
            {data.map((partner, index) => (
-               <PartnerCard key={partner.id} partner={partner} index={index} />
+               <PartnerCard 
+                  key={partner.id} 
+                  partner={partner} 
+                  index={index} 
+                  onDelete={() => handleDelete(partner.id)}
+                  onView={() => setSelectedPartner(partner)}
+               />
            ))}
            {data.length === 0 && (
                <div className="col-span-full py-12 text-center text-gray-500">
@@ -211,6 +235,62 @@ export default function CollaborationClient({ initialData, initialStats }: { ini
                </div>
            </div>
        )}
+
+       {/* View Partner Modal */}
+       {selectedPartner && (
+            <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50">
+               <div className="bg-white rounded-2xl p-6 w-full max-w-lg relative">
+                   <button 
+                       onClick={() => setSelectedPartner(null)} 
+                       className="absolute top-4 right-4 p-2 bg-gray-100 rounded-full hover:bg-gray-200 transition-colors"
+                   >
+                       <X className="w-5 h-5 text-gray-500" />
+                   </button>
+                   
+                   <div className="mb-6 flex items-center gap-4">
+                        <div className="w-16 h-16 bg-[#0f4c81] rounded-xl flex items-center justify-center text-white font-bold">
+                             <Building2 className="w-8 h-8" />
+                        </div>
+                        <div>
+                             <h2 className="text-xl font-bold text-gray-900">{selectedPartner.organizationName}</h2>
+                             <span className="px-2 py-1 bg-blue-50 text-blue-600 rounded text-xs font-semibold">{selectedPartner.type} Partner</span>
+                        </div>
+                   </div>
+
+                   <p className="text-gray-600 mb-6">{selectedPartner.description || "No description provided."}</p>
+
+                   <div className="space-y-4">
+                       <div className="flex items-center gap-3">
+                           <User className="w-5 h-5 text-gray-400" />
+                           <div>
+                               <p className="text-xs text-gray-500">Contact Person</p>
+                               <p className="font-medium text-gray-900">{selectedPartner.contactPerson}</p>
+                           </div>
+                       </div>
+                       <div className="flex items-center gap-3">
+                           <Mail className="w-5 h-5 text-gray-400" />
+                           <div>
+                               <p className="text-xs text-gray-500">Email</p>
+                               <p className="font-medium text-gray-900">{selectedPartner.email}</p>
+                           </div>
+                       </div>
+                       <div className="flex items-center gap-3">
+                           <MapPin className="w-5 h-5 text-gray-400" />
+                           <div>
+                               <p className="text-xs text-gray-500">Location</p>
+                               <p className="font-medium text-gray-900">{selectedPartner.location}</p>
+                           </div>
+                       </div>
+                   </div>
+
+                   <div className="flex justify-end pt-6 mt-6 border-t border-gray-100">
+                       <button onClick={() => setSelectedPartner(null)} className="px-6 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200">
+                           Close
+                       </button>
+                   </div>
+               </div>
+           </div>
+       )}
     </div>
   );
 }
@@ -229,18 +309,15 @@ function StatsCard({ title, value, icon: Icon, color }: any) {
   );
 }
 
-function PartnerCard({ partner, index }: { partner: any, index: number }) {
+function PartnerCard({ partner, index, onDelete, onView }: { partner: any, index: number, onDelete: () => void, onView: () => void }) {
     // Determine status style
     const isPending = partner.status === 'submitted' || partner.status === 'pending';
     const statusBg = isPending ? 'bg-orange-100 text-orange-700' : 'bg-green-100 text-green-700';
     const statusText = isPending ? 'Pending' : 'Active';
     
-    // Mock data based on provided fields or defaults
-    const rating = (4.5 + (index % 5) * 0.1).toFixed(1);
-    const projectsCount = 2 + (index % 3);
     const sinceDate = new Date(partner.createdAt).toLocaleDateString(undefined, { month: 'short', year: 'numeric' });
-    const contactName = "Contact Person"; // Mock
-    const contactEmail = "contact@partner.org"; // Mock
+    const contactName = partner.contactPerson || "N/A"; 
+    const contactEmail = partner.email || "N/A"; 
     
     return (
         <div className="bg-white border border-gray-100 rounded-xl p-6 hover:shadow-md transition-shadow">
@@ -250,22 +327,18 @@ function PartnerCard({ partner, index }: { partner: any, index: number }) {
                          <Building2 className="w-6 h-6" />
                      </div>
                      <div>
-                         <h3 className="font-bold text-gray-900">{partner.companyName}</h3>
-                         <p className="text-xs text-gray-500">{partner.sector || "Partner"}</p>
+                         <h3 className="font-bold text-gray-900">{partner.organizationName}</h3>
+                         <p className="text-xs text-gray-500">{partner.type || "Partner"}</p>
                      </div>
                  </div>
                  <div className="text-right">
                       <span className={`px-2 py-1 rounded text-xs font-semibold ${statusBg} block mb-1`}>
                           {statusText}
                       </span>
-                      <div className="flex items-center justify-end gap-1 text-xs text-yellow-500">
-                          <Star className="w-3 h-3 fill-current" />
-                          <span>{rating}</span>
-                      </div>
                  </div>
              </div>
 
-             <p className="text-sm text-gray-600 mb-4 h-10 overflow-hidden">{partner.description || partner.opportunityTitle || "Strategic partnership for social impact."}</p>
+             <p className="text-sm text-gray-600 mb-4 h-10 overflow-hidden">{partner.description || "Strategic partnership for social impact."}</p>
 
              <div className="space-y-2 mb-6">
                  <div className="flex items-center gap-2 text-sm text-gray-500">
@@ -278,33 +351,35 @@ function PartnerCard({ partner, index }: { partner: any, index: number }) {
                  </div>
                   <div className="flex items-center gap-2 text-sm text-gray-500">
                      <MapPin className="w-4 h-4" />
-                     <span>{partner.location || "Location"}</span>
+                     <span>{partner.location || "Location not specified"}</span>
                  </div>
              </div>
 
              <div className="flex justify-between items-center py-4 border-t border-gray-50 mb-4 px-4 bg-gray-50 rounded-lg">
-                 <div className="text-center">
-                     <p className="font-bold text-gray-900">{projectsCount}</p>
-                     <p className="text-xs text-gray-500">Projects</p>
-                 </div>
-                 <div className="w-px h-8 bg-gray-200"></div>
-                 <div className="text-center">
+                 <div className="text-center w-full">
                      <p className="font-bold text-gray-900">{sinceDate}</p>
-                     <p className="text-xs text-gray-500">Since</p>
+                     <p className="text-xs text-gray-500">Partner Since</p>
                  </div>
              </div>
 
              <div className="flex gap-2">
-                 <button className="flex-1 py-2 bg-blue-50 text-blue-600 text-xs font-semibold rounded-lg flex items-center justify-center gap-2 hover:bg-blue-100">
+                 <button 
+                    onClick={onView}
+                    className="flex-1 py-2 bg-blue-50 text-blue-600 text-xs font-semibold rounded-lg flex items-center justify-center gap-2 hover:bg-blue-100"
+                 >
                      <Eye className="w-3.5 h-3.5" /> View
                  </button>
                   <button className="flex-1 py-2 bg-gray-50 text-gray-900 text-xs font-semibold rounded-lg flex items-center justify-center gap-2 hover:bg-gray-100">
                      <MessageSquare className="w-3.5 h-3.5" /> Contact
                  </button>
-                 <button className="p-2 bg-red-50 text-red-600 rounded-lg hover:bg-red-100">
+                 <button 
+                    onClick={onDelete}
+                    className="p-2 bg-red-50 text-red-600 rounded-lg hover:bg-red-100"
+                 >
                      <Trash2 className="w-3.5 h-3.5" />
                  </button>
              </div>
         </div>
     );
 }
+

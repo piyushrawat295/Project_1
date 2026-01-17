@@ -5,16 +5,20 @@ import {
   Plus,
   Calendar,
   MapPin,
-  Users
+  Users,
+  Eye,
+  Trash2,
+  X
 } from "lucide-react";
 
-import { createEvent } from "@/actions/ngo-features";
+import { createEvent, deleteEvent } from "@/actions/ngo-features";
 import { useRouter } from "next/navigation";
 
 export default function EventsClient({ initialData, initialStats }: { initialData: any[], initialStats: any }) {
   const router = useRouter();
   const [data, setData] = useState(initialData);
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [selectedEvent, setSelectedEvent] = useState<any>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [formData, setFormData] = useState({
       name: "",
@@ -48,6 +52,21 @@ export default function EventsClient({ initialData, initialStats }: { initialDat
       }
   };
 
+  const handleDelete = async (id: number) => {
+      if(!confirm("Are you sure you want to delete this event?")) return;
+      try {
+          const result = await deleteEvent(id);
+          if (result.success) {
+              router.refresh();
+              alert("Event deleted successfully");
+          } else {
+              alert("Failed to delete: " + result.error);
+          }
+      } catch (err) {
+          console.error(err);
+          alert("An error occurred");
+      }
+  };
 
   return (
     <div className="p-8 space-y-8 relative">
@@ -100,8 +119,24 @@ export default function EventsClient({ initialData, initialStats }: { initialDat
                         </div>
                     </div>
                  </div>
-                 <div className={`px-3 py-1 rounded-full text-xs font-medium ${event.status === 'upcoming' ? 'bg-blue-100 text-blue-700' : 'bg-gray-100 text-gray-700'}`}>
-                     {event.status}
+                 <div className="flex items-center gap-4">
+                     <div className={`px-3 py-1 rounded-full text-xs font-medium ${event.status === 'upcoming' ? 'bg-blue-100 text-blue-700' : 'bg-gray-100 text-gray-700'}`}>
+                         {event.status}
+                     </div>
+                     <div className="flex gap-2">
+                        <button 
+                            onClick={() => setSelectedEvent(event)}
+                            className="p-2 text-blue-600 hover:bg-blue-50 rounded-lg"
+                        >
+                            <Eye className="w-4 h-4" />
+                        </button>
+                        <button 
+                            onClick={() => handleDelete(event.id)}
+                            className="p-2 text-red-500 hover:bg-red-50 rounded-lg"
+                        >
+                            <Trash2 className="w-4 h-4" />
+                        </button>
+                     </div>
                  </div>
              </div>
           ))}
@@ -151,6 +186,59 @@ export default function EventsClient({ initialData, initialStats }: { initialDat
                            </button>
                        </div>
                    </form>
+               </div>
+           </div>
+       )}
+
+       {/* View Event Modal */}
+       {selectedEvent && (
+            <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50">
+               <div className="bg-white rounded-2xl p-6 w-full max-w-lg relative">
+                   <button 
+                       onClick={() => setSelectedEvent(null)} 
+                       className="absolute top-4 right-4 p-2 bg-gray-100 rounded-full hover:bg-gray-200 transition-colors"
+                   >
+                       <X className="w-5 h-5 text-gray-500" />
+                   </button>
+                   
+                   <div className="mb-6">
+                        <h2 className="text-xl font-bold text-gray-900 mb-2">{selectedEvent.title}</h2>
+                        <span className={`px-2 py-1 rounded text-xs font-semibold ${selectedEvent.status === 'upcoming' ? 'bg-blue-100 text-blue-700' : 'bg-gray-100 text-gray-700'}`}>
+                            {selectedEvent.status}
+                        </span>
+                   </div>
+
+                   <p className="text-gray-600 mb-6">{selectedEvent.description || "No description provided."}</p>
+
+                   <div className="space-y-4">
+                       <div className="flex items-center gap-3">
+                           <Calendar className="w-5 h-5 text-gray-400" />
+                           <div>
+                               <p className="text-xs text-gray-500">Date</p>
+                               <p className="font-medium text-gray-900">{new Date(selectedEvent.date).toLocaleDateString()}</p>
+                           </div>
+                       </div>
+                       <div className="flex items-center gap-3">
+                           <MapPin className="w-5 h-5 text-gray-400" />
+                           <div>
+                               <p className="text-xs text-gray-500">Location</p>
+                               <p className="font-medium text-gray-900">{selectedEvent.location || "Online"}</p>
+                           </div>
+                       </div>
+                       <div className="flex items-center gap-3">
+                           <Users className="w-5 h-5 text-gray-400" />
+                           <div>
+                               <p className="text-xs text-gray-500">Expected Attendees</p>
+                               <p className="font-medium text-gray-900">{selectedEvent.beneficiariesCount}</p>
+                           </div>
+                       </div>
+                   </div>
+
+                   <div className="flex justify-end pt-6 mt-6 border-t border-gray-100">
+                       <button onClick={() => setSelectedEvent(null)} className="px-6 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200">
+                           Close
+                       </button>
+                   </div>
                </div>
            </div>
        )}

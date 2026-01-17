@@ -10,11 +10,12 @@ import {
   TrendingUp,
   Eye,
   Trash2,
-  FileText
+  FileText,
+  X 
 } from "lucide-react";
 import { motion } from "framer-motion";
 
-import { createProject } from "@/actions/ngo-features";
+import { createProject, deleteProject } from "@/actions/ngo-features";
 import { useRouter } from "next/navigation";
 
 export default function ProjectsClient({ initialData, initialStats }: { initialData: any[], initialStats: any }) {
@@ -22,6 +23,7 @@ export default function ProjectsClient({ initialData, initialStats }: { initialD
   const [data, setData] = useState(initialData);
 
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [selectedProject, setSelectedProject] = useState<any>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [formData, setFormData] = useState({
       title: "",
@@ -58,6 +60,21 @@ export default function ProjectsClient({ initialData, initialStats }: { initialD
       }
   };
 
+  const handleDelete = async (id: number) => {
+      if(!confirm("Are you sure you want to delete this project?")) return;
+      try {
+          const result = await deleteProject(id);
+          if (result.success) {
+              router.refresh();
+              alert("Project deleted successfully");
+          } else {
+              alert("Failed to delete: " + result.error);
+          }
+      } catch (err) {
+          console.error(err);
+          alert("An error occurred");
+      }
+  };
 
   return (
     <div className="p-8 space-y-8 relative">
@@ -108,7 +125,12 @@ export default function ProjectsClient({ initialData, initialStats }: { initialD
        {/* Projects Grid */}
        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           {data.map((project) => (
-            <ProjectCard key={project.id} project={project} />
+            <ProjectCard 
+                key={project.id} 
+                project={project} 
+                onDelete={() => handleDelete(project.id)}
+                onView={() => setSelectedProject(project)}
+            />
           ))}
           {data.length === 0 && (
              <div className="col-span-2 text-center py-12 bg-white rounded-xl border border-gray-100 text-gray-500">
@@ -191,6 +213,70 @@ export default function ProjectsClient({ initialData, initialStats }: { initialD
            </div>
        )}
 
+       {/* View Project Modal */}
+       {selectedProject && (
+           <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+               <div className="bg-white rounded-2xl p-6 w-full max-w-2xl max-h-[90vh] overflow-y-auto relative">
+                   <button 
+                       onClick={() => setSelectedProject(null)} 
+                       className="absolute top-4 right-4 p-2 bg-gray-100 rounded-full hover:bg-gray-200 transition-colors"
+                   >
+                       <X className="w-5 h-5 text-gray-500" />
+                   </button>
+                   
+                   <div className="mb-6">
+                       <span className={`px-3 py-1 rounded-full text-xs font-semibold ${selectedProject.status === 'active' ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'}`}>
+                           {selectedProject.status}
+                       </span>
+                       <h2 className="text-2xl font-bold text-gray-900 mt-2">{selectedProject.title}</h2>
+                       <p className="text-gray-500">{selectedProject.sector}</p>
+                   </div>
+
+                   <div className="grid grid-cols-2 gap-6 mb-6">
+                       <div>
+                           <p className="text-sm text-gray-500 mb-1">Location</p>
+                           <p className="font-medium">{selectedProject.location}</p>
+                       </div>
+                       <div>
+                           <p className="text-sm text-gray-500 mb-1">Duration</p>
+                           <p className="font-medium">
+                               {new Date(selectedProject.startDate).toLocaleDateString()} - {selectedProject.endDate ? new Date(selectedProject.endDate).toLocaleDateString() : 'Ongoing'}
+                           </p>
+                       </div>
+                       <div>
+                           <p className="text-sm text-gray-500 mb-1">Target Beneficiaries</p>
+                           <p className="font-medium">{selectedProject.beneficiariesTargeted}</p>
+                       </div>
+                       <div>
+                           <p className="text-sm text-gray-500 mb-1">Total Budget</p>
+                           <p className="font-medium">₹{selectedProject.totalBudget?.toLocaleString()}</p>
+                       </div>
+                        <div>
+                           <p className="text-sm text-gray-500 mb-1">Raised Amount</p>
+                           <p className="font-medium">₹{selectedProject.raisedAmount?.toLocaleString()}</p>
+                       </div>
+                   </div>
+
+                   {/* Progress Bar in View Modal */}
+                   <div className="mb-6">
+                        <div className="flex justify-between text-sm mb-2">
+                             <span className="text-gray-500">Funding Progress</span>
+                             <span className="font-semibold">{Math.round((selectedProject.raisedAmount / selectedProject.totalBudget) * 100)}%</span>
+                        </div>
+                        <div className="h-2 bg-gray-100 rounded-full overflow-hidden">
+                             <div className="h-full bg-blue-600 rounded-full" style={{ width: `${Math.min((selectedProject.raisedAmount / selectedProject.totalBudget) * 100, 100)}%` }} />
+                        </div>
+                   </div>
+
+                   <div className="flex justify-end pt-6 border-t">
+                       <button onClick={() => setSelectedProject(null)} className="px-6 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200">
+                           Close
+                       </button>
+                   </div>
+               </div>
+           </div>
+       )}
+
     </div>
   );
 }
@@ -207,13 +293,12 @@ function StatsCard({ title, value, subtitle, color }: any) {
   );
 }
 
-function ProjectCard({ project }: { project: any }) {
+function ProjectCard({ project, onDelete, onView }: { project: any, onDelete: () => void, onView: () => void }) {
   const percentRaised = project.totalBudget > 0 ? (project.raisedAmount / project.totalBudget) * 100 : 0;
   
   // Status pill color
   let statusColor = "bg-blue-100 text-blue-700";
   let statusText = project.status;
-  if(project.status === 'active') { statusColor = "bg-green-100 text-green-700"; statusText ="Funded"; } // Map 'active' to 'Funded' visual? 
   // User image shows "Funded" and "Seeking Funding" pills.
   // DB status: active, completed, seeking_funding.
   if (project.status === 'seeking_funding') { statusColor = "bg-red-100 text-red-700"; statusText="Seeking Funding"; }
@@ -275,31 +360,21 @@ function ProjectCard({ project }: { project: any }) {
             </p>
           </div>
         </div>
-         <div className="flex items-center gap-3">
-          <div className="p-2 bg-gray-50 rounded-lg text-gray-500">
-            <TrendingUp className="w-4 h-4" />
-          </div>
-          <div>
-            <p className="text-xs text-gray-500">Activities</p>
-            <p className="text-sm font-semibold text-gray-900">3</p> {/* Hardcoded activity count as per schema limitation/expensiveness */}
-          </div>
-        </div>
+
       </div>
 
       <div className="flex items-center gap-2 pt-4 border-t border-gray-50">
-        <button className="flex items-center gap-2 px-3 py-1.5 text-xs font-medium text-blue-600 hover:bg-blue-50 rounded-lg transition-colors">
+        <button 
+            onClick={onView}
+            className="flex items-center gap-2 px-3 py-1.5 text-xs font-medium text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
+        >
           <Eye className="w-3.5 h-3.5" />
           View Details
         </button>
-        <button className="flex items-center gap-2 px-3 py-1.5 text-xs font-medium text-gray-600 hover:bg-gray-100 rounded-lg transition-colors">
-          <Plus className="w-3.5 h-3.5" />
-          Add Activity
-        </button>
-        <button className="flex items-center gap-2 px-3 py-1.5 text-xs font-medium text-gray-600 hover:bg-gray-100 rounded-lg transition-colors">
-          <FileText className="w-3.5 h-3.5" />
-          Summary
-        </button>
-         <button className="flex items-center gap-2 px-3 py-1.5 text-xs font-medium text-red-600 hover:bg-red-50 rounded-lg transition-colors ml-auto">
+         <button 
+            onClick={onDelete}
+            className="flex items-center gap-2 px-3 py-1.5 text-xs font-medium text-red-600 hover:bg-red-50 rounded-lg transition-colors ml-auto"
+        >
           <Trash2 className="w-3.5 h-3.5" />
           Delete
         </button>

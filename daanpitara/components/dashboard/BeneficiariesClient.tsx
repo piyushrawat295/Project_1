@@ -12,11 +12,12 @@ import {
   Trash2,
   Baby,
   User,
-  Activity
+  Activity,
+  X
 } from "lucide-react";
 import { motion } from "framer-motion";
 
-import { createBeneficiary } from "@/actions/ngo-features";
+import { createBeneficiary, deleteBeneficiary } from "@/actions/ngo-features";
 import { useRouter } from "next/navigation";
 
 export default function BeneficiariesClient({ initialData, initialStats, projects }: { initialData: any[], initialStats: any, projects: any[] }) {
@@ -26,6 +27,7 @@ export default function BeneficiariesClient({ initialData, initialStats, project
   const [selectedCategory, setSelectedCategory] = useState("All");
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isBulkUploadOpen, setIsBulkUploadOpen] = useState(false);
+  const [selectedBeneficiary, setSelectedBeneficiary] = useState<any>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [formData, setFormData] = useState({
     name: "",
@@ -57,8 +59,7 @@ export default function BeneficiariesClient({ initialData, initialStats, project
        if (result.success) {
            setIsModalOpen(false);
            setFormData({ name: "", age: "", gender: "", category: "", projectId: "", location: "", phone: "", notes: "" });
-           router.refresh(); // Refresh to update list
-           // Ideally we should also update local state 'data' optimistically or re-fetch, but refresh works for server components
+           router.refresh();
            alert("Beneficiary added successfully!");
        } else {
            alert("Failed: " + result.error);
@@ -68,6 +69,22 @@ export default function BeneficiariesClient({ initialData, initialStats, project
         alert("An error occurred.");
     } finally {
         setIsSubmitting(false);
+    }
+  };
+
+  const handleDelete = async (id: number) => {
+    if(!confirm("Are you sure you want to delete this beneficiary?")) return;
+    try {
+        const result = await deleteBeneficiary(id);
+        if (result.success) {
+            router.refresh();
+            alert("Beneficiary deleted successfully");
+        } else {
+           alert("Failed to delete: " + result.error);
+        }
+    } catch (err) {
+        console.error(err);
+        alert("An error occurred");
     }
   };
 
@@ -101,13 +118,6 @@ export default function BeneficiariesClient({ initialData, initialStats, project
         </div>
       </div>
 
-      {/* Stats Cards and Filter/Search sections code remains same... Reuse existing from original file here or ensure they are present */}
-      {/* For brevity of replace tool, I am assuming this block replaces the main content up to result map. 
-          But wait, the replace tool replaces CONTIGUOUS block. I should be careful not to delete sections I want to keep.
-          I will rewrite the whole component body to be safe or use multiple chunks if I can pinpoint lines exactly.
-          Since I need to wrap everything in `relative` for modal and add modal HTML at end, I better rewrite the return statement.
-       */}
-      
       {/* Stats Cards */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
         <StatsCard 
@@ -189,10 +199,16 @@ export default function BeneficiariesClient({ initialData, initialStats, project
                 </td>
                 <td className="px-6 py-4 whitespace-nowrap text-right">
                   <div className="flex justify-end gap-2">
-                    <button className="p-1 text-blue-600 hover:bg-blue-50 rounded">
+                    <button 
+                        onClick={() => setSelectedBeneficiary(item)}
+                        className="p-1 text-blue-600 hover:bg-blue-50 rounded"
+                    >
                       <Eye className="w-4 h-4" />
                     </button>
-                    <button className="p-1 text-red-600 hover:bg-red-50 rounded">
+                    <button 
+                        onClick={() => handleDelete(item.id)} 
+                        className="p-1 text-red-600 hover:bg-red-50 rounded"
+                    >
                        <Trash2 className="w-4 h-4" />
                     </button>
                   </div>
@@ -292,6 +308,58 @@ export default function BeneficiariesClient({ initialData, initialStats, project
         </div>
       )}
 
+      {/* View Beneficiary Modal */}
+      {selectedBeneficiary && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+           <div className="bg-white rounded-2xl p-6 w-full max-w-lg relative">
+              <button 
+                  onClick={() => setSelectedBeneficiary(null)} 
+                  className="absolute top-4 right-4 p-2 bg-gray-100 rounded-full hover:bg-gray-200"
+              >
+                  <X className="w-5 h-5 text-gray-500" />
+              </button>
+
+              <h2 className="text-xl font-bold text-gray-900 mb-4">Beneficiary Details</h2>
+              <div className="space-y-4">
+                  <div className="flex justify-between border-b pb-2">
+                      <span className="text-gray-500">Name</span>
+                      <span className="font-semibold">{selectedBeneficiary.name}</span>
+                  </div>
+                  <div className="flex justify-between border-b pb-2">
+                       <span className="text-gray-500">Age / Gender</span>
+                       <span className="font-semibold">{selectedBeneficiary.age} / {selectedBeneficiary.gender}</span>
+                  </div>
+                  <div className="flex justify-between border-b pb-2">
+                       <span className="text-gray-500">Category</span>
+                       <CategoryBadge category={selectedBeneficiary.category} />
+                  </div>
+                   <div className="flex justify-between border-b pb-2">
+                       <span className="text-gray-500">Project</span>
+                       <span className="font-semibold">{selectedBeneficiary.project || "N/A"}</span>
+                  </div>
+                   <div className="flex justify-between border-b pb-2">
+                       <span className="text-gray-500">Location</span>
+                       <span className="font-semibold">{selectedBeneficiary.location || "N/A"}</span>
+                  </div>
+                   <div className="flex justify-between border-b pb-2">
+                       <span className="text-gray-500">Phone</span>
+                       <span className="font-semibold">{selectedBeneficiary.phone || "N/A"}</span>
+                  </div>
+                   <div className="flex justify-between pb-2">
+                       <span className="text-gray-500">Registered</span>
+                       <span className="font-semibold">{new Date(selectedBeneficiary.registeredAt).toLocaleDateString()}</span>
+                  </div>
+              </div>
+
+               <div className="mt-6 flex justify-end">
+                   <button onClick={() => setSelectedBeneficiary(null)} className="px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200">
+                       Close
+                   </button>
+               </div>
+           </div>
+        </div>
+      )}
+
       {/* Bulk Upload Modal */}
       {isBulkUploadOpen && (
           <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
@@ -331,23 +399,11 @@ function StatsCard({ title, value, icon: Icon, color }: any) {
 }
 
 function CategoryBadge({ category }: { category: string }) {
-  const styles: Record<string, string> = {
-    'Child': 'bg-blue-100 text-blue-800',
-    'Women': 'bg-purple-100 text-purple-800', // Assuming women purple? Image shows light blue actually.
-    // Image shows: Child -> Blueish, Women -> Blueish, Elederly -> Blueish. All seem consistent light blue.
-    'Elderly': 'bg-blue-100 text-blue-800',
-    'Other': 'bg-gray-100 text-gray-800'
-  };
-  
-  // Actually image shows customized colors:
-  // Child: Blue-100
-  // Women: Blue-100
-  // Elderly: Blue-100
-  // I will just use blue uniformly as per image.
-  
+  // Using uniform blue as requested/observed in design
   return (
     <span className="px-3 py-1 bg-blue-100 text-[#0EA5E9] text-xs font-medium rounded-full">
       {category}
     </span>
   );
 }
+

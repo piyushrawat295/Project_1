@@ -14,11 +14,12 @@ import {
   Download,
   Trash2,
   File,
-  Plus
+  Plus,
+  X
 } from "lucide-react";
 
 
-import { createRecord } from "@/actions/ngo-features";
+import { createRecord, deleteRecord } from "@/actions/ngo-features";
 import { useRouter } from "next/navigation";
 
 export default function RecordsClient({ initialData, initialStats }: { initialData: any[], initialStats: any }) {
@@ -28,6 +29,7 @@ export default function RecordsClient({ initialData, initialStats }: { initialDa
   const [searchTerm, setSearchTerm] = useState("");
 
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [selectedRecord, setSelectedRecord] = useState<any>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [formData, setFormData] = useState({
       title: "",
@@ -64,6 +66,22 @@ export default function RecordsClient({ initialData, initialStats }: { initialDa
           console.error(err);
       } finally {
           setIsSubmitting(false);
+      }
+  };
+
+  const handleDelete = async (id: number) => {
+      if(!confirm("Are you sure you want to delete this record?")) return;
+      try {
+          const result = await deleteRecord(id);
+          if (result.success) {
+              router.refresh();
+              alert("Record deleted successfully");
+          } else {
+              alert("Failed to delete: " + result.error);
+          }
+      } catch (err) {
+          console.error(err);
+          alert("An error occurred");
       }
   };
 
@@ -158,7 +176,13 @@ export default function RecordsClient({ initialData, initialStats }: { initialDa
        {/* Records Grid */}
        <div className={`grid gap-6 ${view === 'grid' ? 'grid-cols-1 md:grid-cols-3' : 'grid-cols-1'}`}>
            {filteredData.map((record) => (
-               <RecordCard key={record.id} record={record} view={view} />
+               <RecordCard 
+                  key={record.id} 
+                  record={record} 
+                  view={view} 
+                  onDelete={() => handleDelete(record.id)}
+                  onView={() => setSelectedRecord(record)}
+               />
            ))}
            {filteredData.length === 0 && (
               <div className="col-span-full py-12 text-center text-gray-500">
@@ -225,6 +249,57 @@ export default function RecordsClient({ initialData, initialStats }: { initialDa
                </div>
            </div>
        )}
+
+       {/* View Record Modal */}
+       {selectedRecord && (
+            <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50">
+               <div className="bg-white rounded-2xl p-6 w-full max-w-lg relative">
+                   <button 
+                       onClick={() => setSelectedRecord(null)} 
+                       className="absolute top-4 right-4 p-2 bg-gray-100 rounded-full hover:bg-gray-200 transition-colors"
+                   >
+                       <X className="w-5 h-5 text-gray-500" />
+                   </button>
+                   
+                   <div className="mb-6 flex items-start gap-4">
+                        <div className="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center text-blue-600">
+                             <FileText className="w-6 h-6" />
+                        </div>
+                        <div>
+                             <h2 className="text-xl font-bold text-gray-900">{selectedRecord.name}</h2>
+                             <span className="px-2 py-1 bg-blue-50 text-blue-600 rounded text-xs font-semibold">{selectedRecord.category || "General"}</span>
+                        </div>
+                   </div>
+
+                   <div className="space-y-4 mb-8">
+                        <div>
+                            <p className="text-sm text-gray-500 mb-1">Description</p>
+                            <p className="text-gray-900">{selectedRecord.description || "No description provided."}</p>
+                        </div>
+                         <div className="grid grid-cols-2 gap-4">
+                            <div>
+                                <p className="text-sm text-gray-500 mb-1">Date</p>
+                                <p className="font-medium text-gray-900">{new Date(selectedRecord.createdAt).toLocaleDateString()}</p>
+                            </div>
+                            <div>
+                                <p className="text-sm text-gray-500 mb-1">Size</p>
+                                <p className="font-medium text-gray-900">2.5 MB (Mock)</p>
+                            </div>
+                        </div>
+                   </div>
+
+                   <div className="flex gap-3 border-t border-gray-100 pt-6">
+                       <button className="flex-1 py-2.5 bg-[#0EA5E9] text-white rounded-xl font-medium hover:bg-[#0284c7] flex items-center justify-center gap-2">
+                           <Download className="w-4 h-4" />
+                           Download
+                       </button>
+                       <button onClick={() => setSelectedRecord(null)} className="px-6 py-2.5 border border-gray-200 text-gray-700 rounded-xl font-medium hover:bg-gray-50">
+                           Close
+                       </button>
+                   </div>
+               </div>
+           </div>
+       )}
     </div>
   );
 }
@@ -243,18 +318,16 @@ function StatsCard({ title, value, icon: Icon, color }: any) {
   );
 }
 
-function RecordCard({ record, view }: { record: any, view: string }) {
+function RecordCard({ record, view, onDelete, onView }: { record: any, view: string, onDelete: () => void, onView: () => void }) {
     // Infer icon from type
     let Icon = FileText;
     let iconBg = "bg-blue-600";
-    if (record.type === 'image' || record.url.match(/\.(jpg|png|webp)$/i)) { Icon = ImageIcon; iconBg = "bg-green-600"; }
-    if (record.type === 'video' || record.url.match(/\.(mp4|mov)$/i)) { Icon = Video; iconBg = "bg-red-600"; }
+    if (record.type === 'image' || record.url?.match(/\.(jpg|png|webp)$/i)) { Icon = ImageIcon; iconBg = "bg-green-600"; }
+    if (record.type === 'video' || record.url?.match(/\.(mp4|mov)$/i)) { Icon = Video; iconBg = "bg-red-600"; }
     
-    // Mock data for UI if missing in DB
-    const size = "2.5 MB"; // Mock
+    // Format data
     const date = new Date(record.createdAt).toLocaleDateString();
-    const author = "By Admin"; // Mock
-    const category = "Reports"; // Mock or map from type
+    const category = record.category || "Reports"; 
 
     if (view === 'list') {
        return (
@@ -268,12 +341,11 @@ function RecordCard({ record, view }: { record: any, view: string }) {
                </div>
                <div className="text-right text-sm text-gray-500">
                    <p>{date}</p>
-                   <p>{size}</p>
                </div>
                <div className="flex gap-2">
-                   <button className="p-2 text-blue-600 bg-blue-50 rounded-lg"><Eye className="w-4 h-4" /></button>
-                   <button className="p-2 text-gray-600 bg-gray-50 rounded-lg"><Download className="w-4 h-4" /></button>
-                   <button className="p-2 text-red-600 bg-red-50 rounded-lg"><Trash2 className="w-4 h-4" /></button>
+                   <button onClick={onView} className="p-2 text-blue-600 bg-blue-50 rounded-lg hover:bg-blue-100"><Eye className="w-4 h-4" /></button>
+                   <a href={record.url} target="_blank" rel="noopener noreferrer" className="p-2 text-gray-600 bg-gray-50 rounded-lg hover:bg-gray-100 flex items-center justify-center"><Download className="w-4 h-4" /></a>
+                   <button onClick={onDelete} className="p-2 text-red-600 bg-red-50 rounded-lg hover:bg-red-100"><Trash2 className="w-4 h-4" /></button>
                </div>
             </div>
        )
@@ -289,22 +361,20 @@ function RecordCard({ record, view }: { record: any, view: string }) {
             </div>
 
             <h3 className="font-bold text-gray-900 mb-1 truncate" title={record.name}>{record.name}</h3>
-            <p className="text-xs text-gray-500 mb-4 h-8 overflow-hidden">{record.description || "Comprehensive annual report for FY 2023"}</p>
+            <p className="text-xs text-gray-500 mb-4 h-8 overflow-hidden">{record.description || "Comprehensive annual report"}</p>
 
             <div className="flex justify-between items-center text-xs text-gray-500 mb-6 border-t border-gray-50 pt-4">
                <span>{date}</span>
-               <span>{size}</span>
-               <span>{author}</span>
             </div>
 
             <div className="flex gap-2">
-                <button className="flex-1 py-2 bg-blue-50 text-blue-600 text-xs font-semibold rounded-lg flex items-center justify-center gap-2 hover:bg-blue-100">
+                <button onClick={onView} className="flex-1 py-2 bg-blue-50 text-blue-600 text-xs font-semibold rounded-lg flex items-center justify-center gap-2 hover:bg-blue-100">
                     <Eye className="w-3.5 h-3.5" /> View
                 </button>
-                 <button className="flex-1 py-2 bg-gray-50 text-gray-600 text-xs font-semibold rounded-lg flex items-center justify-center gap-2 hover:bg-gray-100">
+                 <a href={record.url} target="_blank" rel="noopener noreferrer" className="flex-1 py-2 bg-gray-50 text-gray-600 text-xs font-semibold rounded-lg flex items-center justify-center gap-2 hover:bg-gray-100">
                     <Download className="w-3.5 h-3.5" /> Download
-                </button>
-                 <button className="p-2 bg-red-50 text-red-600 rounded-lg hover:bg-red-100">
+                </a>
+                 <button onClick={onDelete} className="p-2 bg-red-50 text-red-600 rounded-lg hover:bg-red-100">
                     <Trash2 className="w-3.5 h-3.5" />
                 </button>
             </div>
