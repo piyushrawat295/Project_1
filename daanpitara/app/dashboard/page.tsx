@@ -3,6 +3,8 @@ import DashboardClient from "@/components/dashboard/DashboardClient";
 import { redirect } from "next/navigation";
 import Link from "next/link";
 
+export const dynamic = "force-dynamic";
+
 export default async function Dashboard() {
   const dashboardData = await getDashboardData();
 

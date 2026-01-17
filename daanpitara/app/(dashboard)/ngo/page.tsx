@@ -3,6 +3,8 @@ import { authOptions } from '@/lib/auth-options';
 import { redirect } from 'next/navigation';
 import { logout } from '@/actions/auth';
 
+export const dynamic = "force-dynamic";
+
 export default async function NGODashboard() {
   let session = null;
   try {
