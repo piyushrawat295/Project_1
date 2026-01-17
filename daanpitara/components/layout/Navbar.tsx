@@ -240,8 +240,19 @@ export default function Navbar() {
                 onClick={() => setProfileOpen(!profileOpen)}
                 className="flex items-center gap-2 rounded-full ring-2 ring-gray-100 focus:outline-none focus:ring-blue-500"
               >
-                <div className="h-8 w-8 overflow-hidden rounded-full bg-blue-100 flex items-center justify-center">
-                    <span className="font-semibold text-blue-600">{user.role?.charAt(0).toUpperCase()}</span>
+                <div className="h-8 w-8 overflow-hidden rounded-full bg-blue-100 flex items-center justify-center relative">
+                    {user.image ? (
+                      <img 
+                        src={user.image} 
+                        alt={user.name || "Profile"} 
+                        className="h-full w-full object-cover" 
+                        referrerPolicy="no-referrer"
+                      />
+                    ) : (
+                      <span className="font-semibold text-blue-600">
+                        {user.name ? user.name.charAt(0).toUpperCase() : (user.role?.charAt(0).toUpperCase() || 'U')}
+                      </span>
+                    )}
                 </div>
               </button>
 

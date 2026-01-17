@@ -118,11 +118,6 @@ export default function Hero() {
                         📍 {selectedLocation.city}, India
                       </p>
                     )}
-                    {selectedLocation.pincode && (
-                      <p className="text-xs text-gray-500 mt-0.5">
-                        PIN: {selectedLocation.pincode}
-                      </p>
-                    )}
                   </div>
                 </div>
               </div>
@@ -142,9 +137,6 @@ export default function Hero() {
                 <strong>City:</strong> {selectedLocation.city}
               </p>
               <p>
-                <strong>Pincode:</strong> {selectedLocation.pincode}
-              </p>
-              <p className="sm:col-span-2">
                 <strong>Coordinates:</strong> {selectedLocation.lat}°N, {selectedLocation.lng}°E
               </p>
             </div>

@@ -2,7 +2,6 @@
 
 import { createContext, useContext, useState, useEffect } from 'react'
 import { getMapNGOs, MapNGO } from '@/actions/get-map-ngos'
-import { ngos as staticNgos } from '@/data/ngos' // Import static for fallback/merge
 
 /* 🌍 NGO Location Type (single source of truth) */
 export type NGOLocation = MapNGO
@@ -28,21 +27,14 @@ export function GlobeProvider({ children }: { children: React.ReactNode }) {
 
   const [viewMode, setViewMode] = useState<ViewMode>('globe')
   
-  const [allNgos, setNgos] = useState<NGOLocation[]>(staticNgos)
+  const [allNgos, setNgos] = useState<NGOLocation[]>([])
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
     async function loadNgos() {
       try {
         const dbNgos = await getMapNGOs()
-        
-        // If we have DB NGOs, use them. Otherwise fallback to static.
-        // This prevents any ID collision risks between static (ids 1-16) and DB (ids 1+).
-        if (dbNgos.length > 0) {
-           setNgos(dbNgos);
-        } else {
-           setNgos(staticNgos);
-        }
+        setNgos(dbNgos);
       } catch (err) {
         console.error("Failed to load dynamic NGOs", err)
       } finally {

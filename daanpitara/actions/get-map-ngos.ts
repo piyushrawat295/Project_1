@@ -3,10 +3,22 @@
 import { db } from "@/lib/db";
 import { ngos, users } from "@/lib/schema";
 import { eq } from "drizzle-orm";
-import { NGO as StaticNGO } from "@/data/ngos";
 
-// Type definition matches data/ngos.ts structure
-export type MapNGO = StaticNGO;
+export type MapNGO = {
+  id: number;
+  name: string;
+  slug: string;
+  phone: string;
+  country: string;
+  state: string;
+  city: string;
+  category: "Education" | "Health" | "Elderly Care" | "Environment" | "Multi-domain";
+  lat: number;
+  lng: number;
+  onboardingDate: string | null;
+  paymentClear: boolean;
+  verified: boolean;
+};
 
 export async function getMapNGOs(): Promise<MapNGO[]> {
   try {
@@ -32,8 +44,15 @@ export async function getMapNGOs(): Promise<MapNGO[]> {
          }
       }
 
-      // 3. Address Parsing (Naive approach for now as DB has single string)
-      // We might need geocoding later, but for now assuming Lat/Lng is accurate
+      // 3. Address Parsing
+      // Use operational state/district as proxy for location if available
+      const state = (ngo.operationalStates && ngo.operationalStates.length > 0) 
+        ? ngo.operationalStates[0] 
+        : "Unknown";
+
+      const city = (ngo.operationalDistricts && ngo.operationalDistricts.length > 0)
+        ? ngo.operationalDistricts[0]
+        : (ngo.headquarters?.split(',')[0] || "Unknown");
       
       return {
         id: ngo.id,
@@ -41,8 +60,8 @@ export async function getMapNGOs(): Promise<MapNGO[]> {
         slug: slug, // Generated
         phone: user.phoneNumber || "N/A", // From User table
         country: "India", // Default
-        state: "Unknown", // Would need geocoding or separate field
-        city: ngo.headquarters?.split(',')[0] || "Unknown", 
+        state: state,
+        city: city,
         category: category,
         lat: ngo.lat || 0,
         lng: ngo.lng || 0,

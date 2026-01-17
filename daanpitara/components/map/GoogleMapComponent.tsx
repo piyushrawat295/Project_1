@@ -103,7 +103,6 @@ export default function GoogleMapComponent() {
                 {selectedLocation.city && (
                   <p className="text-sm text-gray-600 mb-2">
                     📍 {selectedLocation.city}, India
-                    {selectedLocation.pincode ? ` - ${selectedLocation.pincode}` : ''}
                   </p>
                 )}
                 

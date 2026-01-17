@@ -34,24 +34,13 @@ export default function Footer() {
           {/* Column 1: Brand & Socials */}
           <div className="flex flex-col gap-6 lg:w-[350px]">
             {/* Logo */}
-            <div className="flex flex-col gap-2">
-              <div className="flex flex-col items-center gap-2">
-                <div className="relative flex h-24 w-auto items-center justify-center p-1">
-                  <img
-                    src="/Logo.png"
-                    alt="DaanPitara"
-                    className="h-full w-full object-contain"
-                  />
-                </div>
-                <div className="flex flex-col items-center">
-                  <span className="text-3xl font-bold leading-none tracking-tight text-white">
-                    DaanPitara
-                  </span>
-                  <span className="text-sm font-medium text-gray-300">
-                    Your compassion, our code
-                  </span>
-                </div>
-              </div>
+            {/* Logo */}
+            <div className="relative flex h-auto w-40 items-center justify-start">
+               <img
+                  src="/FooterLogo.png"
+                  alt="DaanPitara"
+                  className="h-full w-full object-contain"
+               />
             </div>
 
             <p className="text-[15px] leading-relaxed text-gray-300">
