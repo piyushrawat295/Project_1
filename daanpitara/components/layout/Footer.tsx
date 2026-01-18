@@ -74,13 +74,21 @@ export default function Footer() {
           <div className="flex flex-col gap-6">
             <h4 className="text-lg font-bold">Quick Links</h4>
             <ul className="flex flex-col gap-4 text-[15px] text-gray-300">
-              <li className="hover:text-white cursor-pointer">Home</li>
-              <li className="hover:text-white cursor-pointer">About Us</li>
               <li className="hover:text-white cursor-pointer">
-                Fundraiser form
+                <Link href="/">Home</Link>
               </li>
-              <li className="hover:text-white cursor-pointer">FAQ’s</li>
-              <li className="hover:text-white cursor-pointer">Blogs</li>
+              <li className="hover:text-white cursor-pointer">
+                <Link href="/about">About Us</Link>
+              </li>
+              <li className="hover:text-white cursor-pointer">
+                <Link href="/services">Services</Link>
+              </li>
+              <li className="hover:text-white cursor-pointer">
+                <Link href="/contact">Contact Us</Link>
+              </li>
+              <li className="hover:text-white cursor-pointer">
+                <Link href="/blogs">Blogs</Link>
+              </li>
             </ul>
           </div>
 
