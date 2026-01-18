@@ -88,6 +88,14 @@ export default function Navbar() {
   /* Categories derived from data or static */
   const categories = ["All", "Education", "Health", "Environment", "Elderly Care", "Multi-domain"];
 
+  const navLinks = [
+    { label: "Home", href: "/" },
+    { label: "Services", href: "/services" },
+    { label: "Contact Us", href: "/contact" },
+    { label: "Blogs", href: "/blogs" },
+    { label: "About Us", href: "/about" },
+  ];
+
   const user = session?.user;
   const dashboardLink = user?.role === 'admin' ? '/admin' : user?.role === 'ngo' ? '/dashboard' : '/';
 
@@ -143,40 +151,66 @@ export default function Navbar() {
           </Link>
           </motion.div>
 
-          {/* Desktop Search */ }
-          <motion.div 
-            variants={{ hidden: { opacity: 0, scale: 0.95 }, visible: { opacity: 1, scale: 1 } }}
-            className="relative hidden xl:block" 
-            onClick={(e) => e.stopPropagation()}
-          >
-            <div className="flex h-[48px] w-[500px] items-center gap-2 rounded-lg border border-[#E5E7EB] bg-white px-1 shadow-sm focus-within:ring-2 focus-within:ring-blue-100 focus-within:border-blue-400 transition-all duration-200">
-               
-               {/* Search Icon & Input Container */}
-               <div className="flex-1 flex items-center h-full pl-3 gap-2">
-                  <Search className="h-4 w-4 text-gray-400" />
-                  <input
-                    value={query}
-                    onChange={(e) => {
-                      setQuery(e.target.value);
-                      setShowResults(true);
-                      // Reset category if user types? 
-                      // setCategory("All"); // Optional: User preference
-                    }}
-                    onFocus={() => setShowResults(true)}
-                    onKeyDown={(e) => e.key === "Enter" && handleSearchSubmit()}
-                    className="flex-1 bg-transparent text-[15px] text-gray-900 outline-none placeholder:text-gray-400"
-                    placeholder="Search your organization or nearby"
-                    aria-label="Search"
-                  />
-               </div>
+          {/* Desktop Search & Filter Group */}
+          <div className="hidden xl:flex items-center gap-3">
+            <motion.div 
+              variants={{ hidden: { opacity: 0, scale: 0.95 }, visible: { opacity: 1, scale: 1 } }}
+              className="relative z-50" 
+              onClick={(e) => e.stopPropagation()}
+            >
+              <div className="flex h-[48px] w-[380px] items-center gap-2 rounded-lg border border-[#E5E7EB] bg-white px-1 shadow-sm focus-within:ring-2 focus-within:ring-blue-100 focus-within:border-blue-400 transition-all duration-200">
+                 
+                 {/* Search Icon & Input Container */}
+                 <div className="flex-1 flex items-center h-full pl-3 gap-2">
+                    <Search className="h-4 w-4 text-gray-400" />
+                    <input
+                      value={query}
+                      onChange={(e) => {
+                        setQuery(e.target.value);
+                        setShowResults(true);
+                      }}
+                      onFocus={() => setShowResults(true)}
+                      onKeyDown={(e) => e.key === "Enter" && handleSearchSubmit()}
+                      className="flex-1 bg-transparent text-[15px] text-gray-900 outline-none placeholder:text-gray-400"
+                      placeholder="Search organizations..."
+                      aria-label="Search"
+                    />
+                 </div>
+              </div>
 
-               {/* Separator */}
-               <div className="h-6 w-[1px] bg-gray-200 mx-1"></div>
+              {/* Dropdown Results */}
+              {showResults && (debouncedQuery || category !== "All") && (
+                <div className="absolute top-[52px] left-0 w-full bg-white rounded-lg shadow-lg border border-gray-100 overflow-hidden py-2 z-50 max-h-[400px] overflow-y-auto">
+                  {filteredNgos.length > 0 ? (
+                    filteredNgos.map((ngo) => (
+                      <div
+                        key={ngo.id}
+                        onClick={() => handleSelect(ngo)}
+                        className="px-4 py-3 hover:bg-gray-50 cursor-pointer border-b border-gray-50 last:border-none flex justify-between items-center"
+                      >
+                        <div>
+                          <p className="font-medium text-gray-900">{ngo.name}</p>
+                          <p className="text-sm text-gray-500">{ngo.city}, {ngo.state}</p>
+                        </div>
+                        <span className="text-xs bg-blue-50 text-blue-600 px-2 py-1 rounded-full">
+                          {ngo.category}
+                        </span>
+                      </div>
+                    ))
+                  ) : (
+                    <div className="px-4 py-3 text-gray-500 text-sm">No results found</div>
+                  )}
+                </div>
+              )}
+            </motion.div>
 
-               {/* Filter Button */}
+            {/* Filter Button (Desktop) */}
+            <motion.div 
+                variants={{ hidden: { opacity: 0, scale: 0.95 }, visible: { opacity: 1, scale: 1 } }}
+            >
                <button 
                   onClick={() => setIsFilterModalOpen(true)}
-                  className={`flex items-center gap-2 h-[48px] px-4 rounded-lg border transition-all duration-200
+                  className={`flex items-center gap-2 h-[48px] px-4 rounded-lg border transition-all duration-200 shadow-sm
                      ${category !== 'All' 
                         ? 'border-blue-500 bg-blue-50 text-blue-700' 
                         : 'border-[#E5E7EB] bg-white text-gray-600 hover:bg-gray-50'
@@ -185,54 +219,29 @@ export default function Navbar() {
                   <span className="text-sm font-medium">Filter</span>
                   <SlidersHorizontal className="h-4 w-4" />
                </button>
-            </div>
-
-            {/* Dropdown Results */}
-            {showResults && (debouncedQuery || category !== "All") && (
-              <div className="absolute top-[52px] left-0 w-full bg-white rounded-lg shadow-lg border border-gray-100 overflow-hidden py-2 z-50">
-                {filteredNgos.length > 0 ? (
-                  filteredNgos.map((ngo) => (
-                    <div
-                      key={ngo.id}
-                      onClick={() => handleSelect(ngo)}
-                      className="px-4 py-3 hover:bg-gray-50 cursor-pointer border-b border-gray-50 last:border-none flex justify-between items-center"
-                    >
-                      <div>
-                        <p className="font-medium text-gray-900">{ngo.name}</p>
-                        <p className="text-sm text-gray-500">{ngo.city}, {ngo.state}</p>
-                      </div>
-                      <span className="text-xs bg-blue-50 text-blue-600 px-2 py-1 rounded-full">
-                        {ngo.category}
-                      </span>
-                    </div>
-                  ))
-                ) : (
-                  <div className="px-4 py-3 text-gray-500 text-sm">No results found</div>
-                )}
-              </div>
-            )}
-          </motion.div>
+            </motion.div>
+          </div>
         </div>
 
         {/* RIGHT - NAV LINKS */}
         <div className="hidden xl:flex items-center gap-8">
-          {[
-            { label: "Home", href: "/" },
-            { label: "Services", href: "/services" },
-            { label: "Contact Us", href: "/contact" },
-            { label: "Blogs", href: "/blogs" },
-            { label: "About Us", href: "/about" },
-          ].map((link) => (
-            <motion.div key={link.label} variants={{ hidden: { opacity: 0, y: -10 }, visible: { opacity: 1, y: 0 } }}>
-            <Link
-              href={link.href}
-              className="text-[16px] text-gray-600 hover:text-blue-600 font-medium transition-colors relative group"
-            >
-              {link.label}
-              <span className="absolute -bottom-1 left-0 w-0 h-0.5 bg-blue-600 transition-all group-hover:w-full"></span>
-            </Link>
-            </motion.div>
-          ))}
+          {navLinks.map((link) => {
+            const isActive = link.href === '/' 
+              ? pathname === '/' 
+              : (pathname?.startsWith(link.href) && (pathname === link.href || pathname[link.href.length] === '/'));
+
+            return (
+              <motion.div key={link.label} variants={{ hidden: { opacity: 0, y: -10 }, visible: { opacity: 1, y: 0 } }}>
+                <Link
+                  href={link.href}
+                  className={`text-[16px] font-medium transition-colors relative group ${isActive ? 'text-blue-600' : 'text-gray-600 hover:text-blue-600'}`}
+                >
+                  {link.label}
+                  <span className={`absolute -bottom-1 left-0 h-0.5 bg-blue-600 transition-all duration-300 ${isActive ? 'w-full' : 'w-0 group-hover:w-full'}`}></span>
+                </Link>
+              </motion.div>
+            );
+          })}
 
           {user ? (
             <div className="relative ml-4">
@@ -317,49 +326,76 @@ export default function Navbar() {
         <div className="xl:hidden border-t bg-white px-6 py-6 space-y-6">
           
           {/* Mobile Search */}
-          <div className="relative" onClick={(e) => e.stopPropagation()}>
-             <div className="flex h-[48px] items-center gap-3 rounded-lg border border-[#99A1AF] bg-[#F9FAFB] px-4">
-              <Search className="h-5 w-5 text-[#99A1AF]" />
-              <input
-                value={query}
-                onChange={(e) => {
-                  setQuery(e.target.value);
-                  setShowResults(true);
-                }}
-                 onFocus={() => setShowResults(true)}
-                className="flex-1 bg-transparent text-[16px] outline-none placeholder:text-[#99A1AF]"
-                placeholder="Search..."
-              />
-            </div>
-            
-             {/* Mobile Dropdown Results */}
-             {showResults && debouncedQuery && (
-              <div className="mt-2 w-full bg-white rounded-lg shadow-lg border border-gray-100 overflow-hidden py-2">
-                {filteredNgos.length > 0 ? (
-                  filteredNgos.map((ngo) => (
-                    <div
-                      key={ngo.id}
-                      onClick={() => handleSelect(ngo)}
-                      className="px-4 py-3 hover:bg-gray-50 cursor-pointer border-b border-gray-50 last:border-none"
-                    >
-                      <p className="font-medium text-gray-900">{ngo.name}</p>
-                      <p className="text-sm text-gray-500">{ngo.city}</p>
-                    </div>
-                  ))
-                ) : (
-                   <div className="px-4 py-3 text-gray-500 text-sm">No results found</div>
-                )}
+          {/* Mobile Search & Filter */}
+          <div className="flex gap-3" onClick={(e) => e.stopPropagation()}>
+            <div className="relative flex-1">
+               <div className="flex h-[48px] items-center gap-3 rounded-lg border border-[#99A1AF] bg-[#F9FAFB] px-4">
+                <Search className="h-5 w-5 text-[#99A1AF]" />
+                <input
+                  value={query}
+                  onChange={(e) => {
+                    setQuery(e.target.value);
+                    setShowResults(true);
+                  }}
+                   onFocus={() => setShowResults(true)}
+                  className="flex-1 bg-transparent text-[16px] outline-none placeholder:text-[#99A1AF]"
+                  placeholder="Search..."
+                />
               </div>
-            )}
+              
+               {/* Mobile Dropdown Results */}
+               {showResults && debouncedQuery && (
+                <div className="absolute top-[52px] left-0 z-50 w-full bg-white rounded-lg shadow-lg border border-gray-100 overflow-hidden py-2 max-h-[300px] overflow-y-auto">
+                  {filteredNgos.length > 0 ? (
+                    filteredNgos.map((ngo) => (
+                      <div
+                        key={ngo.id}
+                        onClick={() => handleSelect(ngo)}
+                        className="px-4 py-3 hover:bg-gray-50 cursor-pointer border-b border-gray-50 last:border-none"
+                      >
+                        <p className="font-medium text-gray-900">{ngo.name}</p>
+                        <p className="text-sm text-gray-500">{ngo.city}</p>
+                      </div>
+                    ))
+                  ) : (
+                     <div className="px-4 py-3 text-gray-500 text-sm">No results found</div>
+                  )}
+                </div>
+              )}
+            </div>
+
+            {/* Mobile Filter Button */}
+            <button 
+                onClick={() => setIsFilterModalOpen(true)}
+                className={`flex items-center justify-center h-[48px] w-[48px] rounded-lg border transition-all duration-200 shrink-0
+                   ${category !== 'All' 
+                      ? 'border-blue-500 bg-blue-50 text-blue-700' 
+                      : 'border-[#99A1AF] bg-[#F9FAFB] text-gray-600 hover:bg-gray-200'
+                   }`}
+                aria-label="Filter"
+             >
+                <SlidersHorizontal className="h-5 w-5" />
+             </button>
           </div>
 
           {/* Links */}
           <nav className="space-y-4 text-[16px] text-gray-700">
-            <Link href="/" className="block">Home</Link>
-            <Link href="/services" className="block">Services</Link>
-            <Link href="/contact" className="block">Contact Us</Link>
-            <Link href="/blogs" className="block">Blogs</Link>
-            <Link href="/about" className="block">About Us</Link>
+            {navLinks.map((link) => {
+              const isActive = link.href === '/' 
+                ? pathname === '/' 
+                : (pathname?.startsWith(link.href) && (pathname === link.href || pathname[link.href.length] === '/'));
+              
+              return (
+                <Link 
+                  key={link.label}
+                  href={link.href} 
+                  className={`block ${isActive ? 'text-blue-600 font-medium' : 'text-gray-700'}`}
+                  onClick={() => setOpen(false)}
+                >
+                  {link.label}
+                </Link>
+              );
+            })}
           </nav>
 
           {session ? (

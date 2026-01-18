@@ -69,7 +69,7 @@ export async function getMapNGOs(): Promise<MapNGO[]> {
         paymentClear: ngo.paymentClear || false,
         verified: ngo.verified || false,
       };
-    });
+    }).filter(ngo => ngo.lat !== 0 && ngo.lng !== 0);
   } catch (error) {
     console.error("Error fetching Map NGOs:", error);
     return [];

@@ -2,6 +2,7 @@
 
 import { ChevronRight } from "lucide-react";
 import { motion } from "framer-motion";
+import Link from "next/link";
 
 export default function Story() {
   return (
@@ -73,24 +74,26 @@ export default function Story() {
           </p>
 
           <div className="flex justify-center lg:justify-start">
-            <button
-              className="
-                flex
-                items-center
-                gap-2
-                h-[48px]
-                px-8
-                rounded-lg
-                border
-                border-[#0F71A8]
-                text-[#0F71A8]
-                hover:bg-blue-50
-                transition
-              "
-            >
-              Join Our Mission
-              <ChevronRight className="w-5 h-5" />
-            </button>
+            <Link href="/contact">
+              <button
+                className="
+                  flex
+                  items-center
+                  gap-2
+                  h-[48px]
+                  px-8
+                  rounded-lg
+                  border
+                  border-[#0F71A8]
+                  text-[#0F71A8]
+                  hover:bg-blue-50
+                  transition
+                "
+              >
+                Join Our Mission
+                <ChevronRight className="w-5 h-5" />
+              </button>
+            </Link>
           </div>
         </motion.div>
       </div>

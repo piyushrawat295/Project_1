@@ -7,6 +7,7 @@ import { useGlobe } from "@/context/GlobeContext";
 import { Suspense } from "react";
 import { GlobeErrorBoundary } from "../globe/GlobeErrorBoundary";
 import { motion } from "framer-motion";
+import Link from "next/link";
 
 // 🔥 IMPORTANT: dynamic import (SSR off)
 const GlobeCanvas = dynamic(() => import("../globe/GlobeCanvas"), {
@@ -52,15 +53,19 @@ export default function Hero() {
             </p>
 
             <div className="flex flex-wrap gap-4">
-              <button className="flex h-[48px] items-center gap-[10px] rounded-lg bg-[#0F71A8] px-6 text-white">
-                Explore Services
-                <ChevronRight size={20} />
-              </button>
+              <Link href="/services">
+                <button className="flex h-[48px] items-center gap-[10px] rounded-lg bg-[#0F71A8] px-6 text-white hover:bg-[#0c5d8a] transition-colors">
+                  Explore Services
+                  <ChevronRight size={20} />
+                </button>
+              </Link>
 
-              <button className="flex h-[48px] items-center gap-[10px] rounded-lg border border-[#0F71A8] px-6 text-[#0F71A8]">
-                <Phone size={20} />
-                Contact Us
-              </button>
+              <Link href="/contact">
+                <button className="flex h-[48px] items-center gap-[10px] rounded-lg border border-[#0F71A8] px-6 text-[#0F71A8] hover:bg-blue-50 transition-colors">
+                  <Phone size={20} />
+                  Contact Us
+                </button>
+              </Link>
             </div>
           </div>
 
@@ -143,21 +148,7 @@ export default function Hero() {
           </div>
         )}
 
-        {/* Pills */}
-        <div className="mt-[56px] mb-[36px] flex flex-wrap gap-4 sm:gap-6">
-          {[
-            "Empowering NGOs",
-            "Digital & Funding Support",
-            "Trust & Transparency",
-          ].map((item) => (
-            <span
-              key={item}
-              className="rounded-lg border border-gray-300 px-6 py-3 text-[#4C4B4B]"
-            >
-              {item}
-            </span>
-          ))}
-        </div>
+        {/* Pills Removed - Moved to Services.tsx */}
       </motion.div>
     </section>
   );

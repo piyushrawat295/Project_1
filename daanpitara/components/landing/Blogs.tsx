@@ -36,10 +36,10 @@ export default function Blogs() {
                 whileInView={{ opacity: 1, x: 0 }}
                 transition={{ delay: i * 0.1, duration: 0.5 }}
                 viewport={{ once: true }}
-                className="bg-white rounded-lg p-[21px] flex gap-6 shadow-sm"
+                className="bg-white rounded-lg p-5 md:p-[21px] flex flex-col md:flex-row gap-6 shadow-sm"
               >
                 {/* Image */}
-                <div className="w-[288px] h-[224px] rounded-[14px] overflow-hidden relative shrink-0">
+                <div className="w-full h-[200px] md:w-[288px] md:h-[224px] rounded-[14px] overflow-hidden relative shrink-0">
                   <img
                     src="/HomeImages/blog.jpg"
                     className="w-full h-full object-cover"
@@ -50,7 +50,7 @@ export default function Blogs() {
                 </div>
 
                 {/* Text */}
-                <div className="flex flex-col justify-between h-[224px] w-full">
+                <div className="flex flex-col justify-between h-auto md:h-[224px] w-full">
 
                   {/* Title + desc */}
                   <div className="flex flex-col gap-3 max-w-[352px]">
@@ -68,7 +68,7 @@ export default function Blogs() {
                   </div>
 
                   {/* Footer */}
-                  <div className="flex items-center justify-between max-w-[352px]">
+                  <div className="flex items-center justify-between max-w-[352px] mt-4 md:mt-0">
 
                     {/* Meta */}
                     <div className="flex items-center gap-4 text-[#6A7282] text-[14px] leading-[19px]">

@@ -44,8 +44,8 @@ async function seedDummyData() {
         INSERT INTO ngos (
           owner_id, name, registration_number, established_year, team_size, 
           headquarters, description, focus_areas, operational_states, 
-          vision, mission, type, payment_clear, verified
-        ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, true, true)
+          vision, mission, type, payment_clear, verified, lat, lng
+        ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, true, true, $13, $14)
         RETURNING id
       `;
       const ngoValues = [
@@ -60,7 +60,9 @@ async function seedDummyData() {
         ['Maharashtra', 'Karnataka', 'Delhi'],
         'A world where everyone has access to basic rights.',
         'To bridge the gap between resources and those in need.',
-        'Trust'
+        'Trust',
+        19.0760, // Lat
+        72.8777  // Lng
       ];
       const res = await client.query(insertNGO, ngoValues);
       ngoId = res.rows[0].id;
