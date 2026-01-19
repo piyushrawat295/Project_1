@@ -343,8 +343,8 @@ export default function Navbar() {
                 />
               </div>
               
-               {/* Mobile Dropdown Results */}
-               {showResults && debouncedQuery && (
+                {/* Mobile Dropdown Results */}
+               {showResults && (debouncedQuery || category !== "All") && (
                 <div className="absolute top-[52px] left-0 z-50 w-full bg-white rounded-lg shadow-lg border border-gray-100 overflow-hidden py-2 max-h-[300px] overflow-y-auto">
                   {filteredNgos.length > 0 ? (
                     filteredNgos.map((ngo) => (

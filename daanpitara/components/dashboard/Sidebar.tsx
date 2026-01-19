@@ -20,10 +20,11 @@ import {
   Settings,
   PanelLeftClose,
   PanelLeftOpen,
-  ChevronDown
+  ChevronDown,
+  X
 } from "lucide-react";
 import Image from "next/image";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useSession } from "next-auth/react";
 
@@ -50,36 +51,70 @@ const bottomItems = [
 
 export default function Sidebar({ 
   collapsed, 
-  setCollapsed 
+  setCollapsed,
+  mobileOpen = false,
+  setMobileOpen
 }: { 
   collapsed: boolean; 
   setCollapsed: (v: boolean) => void;
+  mobileOpen?: boolean;
+  setMobileOpen?: (v: boolean) => void;
 }) {
   const pathname = usePathname();
   const { data: session } = useSession();
   
   const firstName = session?.user?.name?.split(" ")[0] || "User";
 
+  const [isMobile, setIsMobile] = useState(false);
+
+  useEffect(() => {
+    const checkMobile = () => setIsMobile(window.innerWidth < 768);
+    checkMobile();
+    window.addEventListener('resize', checkMobile);
+    return () => window.removeEventListener('resize', checkMobile);
+  }, []);
+
+  const sidebarWidth = collapsed ? 80 : 280;
+  // On mobile: fixed width 280. If open x=0, else x=-100% (or -280)
+  // On desktop: width dynamic, x=0
+  const currentWidth = isMobile ? 280 : sidebarWidth;
+  const currentX = isMobile ? (mobileOpen ? 0 : -320) : 0; // -320 to be sure it's out
+
   return (
     <motion.aside 
       initial={false}
-      animate={{ width: collapsed ? 80 : 280 }}
-      className="fixed left-0 top-0 h-screen border-r border-gray-100 bg-white shadow-sm flex flex-col z-50 transition-all duration-300 ease-in-out font-sans"
+      animate={{ 
+        width: currentWidth, 
+        x: currentX 
+      }}
+      transition={{ duration: 0.3, ease: "easeInOut" }}
+      className="fixed left-0 top-0 h-screen border-r border-gray-100 bg-white shadow-sm flex flex-col z-50 font-sans"
     >
-      {/* Logo & Toggle */}
-      {/* Logo & Toggle */}
-      <div className={`relative flex flex-col ${collapsed ? 'items-center justify-center py-4' : 'items-start justify-start pl-6 pt-4'} border-b border-gray-50 bg-white transition-all duration-300`}>
-        
-        {/* Toggle Button - Absolute Positioned */}
+      {/* Mobile Close Button */}
+      {isMobile && (
         <button 
-          onClick={() => setCollapsed(!collapsed)}
-          className={`absolute top-4 right-4 p-1.5 rounded-lg hover:bg-gray-100 text-gray-500 transition-colors z-20 ${collapsed ? 'relative top-0 right-0 mx-auto mb-2' : ''}`}
+          onClick={() => setMobileOpen?.(false)}
+          className="absolute top-4 right-4 p-2 text-gray-500 hover:bg-gray-100 rounded-lg"
         >
-          {collapsed ? <PanelLeftOpen className="w-5 h-5" /> : <PanelLeftClose className="w-5 h-5" />}
+          <X className="w-6 h-6" />
         </button>
+      )}
+
+      {/* Logo & Toggle */}
+      <div className={`relative flex flex-col ${collapsed && !isMobile ? 'items-center justify-center py-4' : 'items-start justify-start pl-6 pt-4'} border-b border-gray-50 bg-white transition-all duration-300`}>
+        
+        {/* Toggle Button - Desktop Only */}
+        {!isMobile && (
+          <button 
+            onClick={() => setCollapsed(!collapsed)}
+            className={`absolute top-4 right-4 p-1.5 rounded-lg hover:bg-gray-100 text-gray-500 transition-colors z-20 ${collapsed ? 'relative top-0 right-0 mx-auto mb-2' : ''}`}
+          >
+            {collapsed ? <PanelLeftOpen className="w-5 h-5" /> : <PanelLeftClose className="w-5 h-5" />}
+          </button>
+        )}
 
         <AnimatePresence>
-          {!collapsed ? (
+          {!collapsed || isMobile ? (
             <motion.div 
               initial={{ opacity: 0, scale: 0.9, x: -20 }}
               animate={{ opacity: 1, scale: 1, x: 0 }}
@@ -97,7 +132,7 @@ export default function Sidebar({
                </div>
             </motion.div>
           ) : (
-             // Collapsed State Logo (Small)
+             // Collapsed State Logo (Small) - Desktop Only
              <motion.div 
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
@@ -116,9 +151,9 @@ export default function Sidebar({
         </AnimatePresence>
       </div>
 
-      {/* Greeting (Only when open) */}
+      {/* Greeting (Only when open or mobile) */}
       <AnimatePresence>
-        {!collapsed && (
+        {(!collapsed || isMobile) && (
            <motion.div 
              initial={{ opacity: 0, height: 0 }}
              animate={{ opacity: 1, height: 'auto' }}
@@ -134,7 +169,7 @@ export default function Sidebar({
 
       {/* Navigation */}
       <div className="flex-1 overflow-y-auto py-2 px-3 space-y-1 [&::-webkit-scrollbar]:hidden -mr-1 pr-1">
-        {!collapsed && (
+        {(!collapsed || isMobile) && (
           <div className="text-[11px] font-semibold text-gray-400 uppercase tracking-wider mb-2 px-3 mt-2">
             Navigation
           </div>
@@ -146,19 +181,20 @@ export default function Sidebar({
             <Link
               key={item.href}
               href={item.href}
+              onClick={() => isMobile && setMobileOpen?.(false)} // Close on click (mobile)
               className={`flex items-center gap-3 px-3 py-2.5 rounded-lg transition-all duration-200 group relative
                 ${isActive 
                   ? "bg-gray-100 text-gray-900 font-semibold" 
                   : "text-gray-500 hover:bg-gray-50 hover:text-gray-900"
-                } ${collapsed ? 'justify-center' : ''}`}
-              title={collapsed ? item.label : undefined}
+                } ${collapsed && !isMobile ? 'justify-center' : ''}`}
+              title={collapsed && !isMobile ? item.label : undefined}
             >
               <item.icon 
                 className={`w-[20px] h-[20px] transition-colors flex-shrink-0
                   ${isActive ? "text-gray-900" : "text-gray-400 group-hover:text-gray-600"}
                 `} 
               />
-              {!collapsed && (
+              {(!collapsed || isMobile) && (
                 <>
                   <span className="whitespace-nowrap overflow-hidden text-[14px] flex-1">{item.label}</span>
                   {/* @ts-ignore */}
@@ -172,7 +208,7 @@ export default function Sidebar({
 
       {/* Bottom Actions */}
       <div className="p-4 border-t border-gray-50 space-y-1 bg-white">
-         {!collapsed && (
+         {(!collapsed || isMobile) && (
           <div className="text-[11px] font-semibold text-gray-400 uppercase tracking-wider mb-2 px-3">
             Others
           </div>
@@ -181,12 +217,13 @@ export default function Sidebar({
           <Link
             key={item.href}
             href={item.href}
+            onClick={() => isMobile && setMobileOpen?.(false)}
             className={`flex items-center gap-3 px-3 py-2.5 rounded-lg text-gray-500 hover:bg-gray-50 hover:text-gray-900 transition-all duration-200 group
-             ${collapsed ? 'justify-center' : ''}`}
-            title={collapsed ? item.label : undefined}
+             ${collapsed && !isMobile ? 'justify-center' : ''}`}
+            title={collapsed && !isMobile ? item.label : undefined}
           >
             <item.icon className="w-[20px] h-[20px] text-gray-400 group-hover:text-gray-600 flex-shrink-0" />
-            {!collapsed && <span className="text-[14px]">{item.label}</span>}
+            {(!collapsed || isMobile) && <span className="text-[14px]">{item.label}</span>}
           </Link>
         ))}
       </div>

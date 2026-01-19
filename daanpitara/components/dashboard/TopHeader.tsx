@@ -2,11 +2,11 @@
 
 import { useSession, signOut } from "next-auth/react";
 import Image from "next/image";
-import { Bell, Search, ChevronDown, LogOut } from "lucide-react";
+import { Bell, Search, ChevronDown, LogOut, Menu } from "lucide-react";
 import { useState, useRef, useEffect } from "react";
 import Link from "next/link";
 
-export default function TopHeader() {
+export default function TopHeader({ onMenuClick }: { onMenuClick?: () => void }) {
   const { data: session } = useSession();
   const [isProfileOpen, setIsProfileOpen] = useState(false);
   const profileRef = useRef<HTMLDivElement>(null);
@@ -24,7 +24,13 @@ export default function TopHeader() {
   return (
     <header className="h-16 bg-white border-b border-gray-100 flex items-center justify-between px-6 sticky top-0 z-40">
       {/* Left: Greeting/Breadcrumb */}
-      <div>
+      <div className="flex items-center gap-4">
+        <button 
+          onClick={onMenuClick}
+          className="md:hidden p-1 -ml-2 text-gray-600 hover:bg-gray-100 rounded-md"
+        >
+          <Menu className="w-6 h-6" />
+        </button>
         <h1 className="text-xl font-bold text-gray-800">
           DASHBOARD
         </h1>

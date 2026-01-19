@@ -170,15 +170,7 @@ export default function Services() {
                    {tab}
                  </button>
                  {/* Vertical Separator logic: Show only if current is NOT active AND next item exists AND next item is NOT active */}
-                 {/* Actually, looking at image: Separator is between inactive items.
-                     If we use the design from screenshot: 
-                     [Active Button] | [Inactive Button] | [Inactive Button] ? No.
-                     Screenshot shows: [Inactive Button] | [Inactive Button] | [Active Button]
-                     It seems like a tab list. 
-                     Wait, the prompt says "make the ui like this buttons on left side a bit vertical slash in between". 
-                     The uploaded image shows: [Button] | [Button] | [Active Dark Button]
-                     So separators exist between items.
-                  */}
+
                   {index < tabs.length - 1 && (
                     <span className="h-6 w-[1px] bg-gray-400 mx-2 hidden sm:block"></span>
                   )}
@@ -198,7 +190,7 @@ export default function Services() {
         >
           {/* Heading */}
           <h2 className="text-center text-[30px] md:text-[36px] leading-[44px] font-medium text-white mb-2">
-            Empowering NGOs
+            {activeTab}
           </h2>
 
           <p className="text-center text-[#E6F4FC] text-[16px] leading-[24px] mb-[36px]">
