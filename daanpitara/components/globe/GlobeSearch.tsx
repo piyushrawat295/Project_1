@@ -113,7 +113,7 @@ export default function GlobeSearch() {
                 : 'border-gray-200 bg-white text-gray-600 hover:bg-gray-50'
                 }`}
         >
-            <span className="text-base font-medium">Filter</span>
+            <span className="text-base font-medium hidden sm:inline">Filter</span>
             <SlidersHorizontal className="h-5 w-5" />
         </button>
       </div>

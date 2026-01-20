@@ -31,29 +31,27 @@ export default function Hero() {
   };
 
   return (
-    <section className="bg-[#FFFDF9]">
-      <motion.div 
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.6 }}
+    <section className="bg-[#FFFDF9] -mt-[1px] relative overflow-hidden">
+      <div 
         className="mx-auto w-full max-w-[1440px] px-4 sm:px-6 xl:px-[72px] pt-6 sm:pt-[56px] pb-12"
       >
         {/* Top */}
-        <div className="flex flex-col xl:flex-row items-center gap-12 xl:gap-[50px]">
+        <div className="flex flex-col xl:flex-row items-center gap-8 xl:gap-[50px]">
           
           {/* LEFT: Text Content */}
-          <div className="w-full xl:w-[659px] order-1">
+          {/* LEFT: Text Content - Order 1 on Mobile & Desktop */}
+          <div className="w-full xl:w-[659px] order-1 flex flex-col items-center xl:items-start text-center xl:text-left">
             {selectedLocation?.city ? (
-              <h1 className="text-black text-[28px] sm:text-[32px] xl:text-[40px] font-medium leading-normal mb-4">
+              <h1 className="text-black text-[28px] sm:text-[36px] xl:text-[40px] font-medium leading-normal mb-4">
                 DaanPitara <span className="text-[#0F71A8]">{selectedLocation.city}</span>
               </h1>
             ) : (
-              <h1 className="text-black text-[32px] sm:text-[40px] xl:text-[48px] font-bold leading-tight mb-6">
+              <h1 className="text-black text-[28px] sm:text-[40px] xl:text-[48px] font-bold leading-tight mb-4 xl:mb-6">
                 Discover Verified NGOs Across World Through an <span className="text-[#0F71A8]">Interactive Global Map</span>
               </h1>
             )}
 
-            <p className="text-[#4C4B4B] text-[16px] xl:text-[18px] leading-relaxed mb-8 max-w-[90%]">
+            <p className="text-[#4C4B4B] text-[15px] sm:text-[16px] xl:text-[18px] leading-relaxed mb-6 xl:mb-8 max-w-[95%] xl:max-w-none">
               DaanPitara connects donors, NGOs, and CSR partners through a real-time interactive globe. Explore verified organizations by location, track social impact visually, and support causes with transparent digital fundraising.
             </p>
 
@@ -74,12 +72,12 @@ export default function Hero() {
             </div>
           </div>
 
-          {/* RIGHT: Globe & Search (Order 2 on Desktop, Order 2 on Mobile) */}
-          <div className="flex flex-col gap-6 w-full max-w-[600px] order-2">
+          {/* RIGHT: Globe & Search - Order 2 on Mobile & Desktop */}
+          <div className="flex flex-col gap-6 w-full max-w-[600px] order-2 z-10">
             
             {/* Globe Container */}
             <div className="relative w-full">
-                <div className="w-full h-[350px] sm:h-[420px] xl:h-[500px] relative overflow-hidden rounded-2xl shadow-lg border border-gray-100 bg-white">
+                <div className="w-full h-[320px] sm:h-[400px] xl:h-[500px] relative overflow-hidden rounded-2xl shadow-lg border border-gray-100 bg-white">
                     {viewMode === "map" ? (
                     <motion.div
                         key="map"
@@ -146,7 +144,7 @@ export default function Hero() {
             </div>
 
              {/* Mobile Buttons (Visible on Mobile, Hidden on XL) */}
-             <div className="flex xl:hidden flex-col sm:flex-row gap-3 w-full mt-4">
+             <div className="flex xl:hidden flex-col sm:flex-row gap-3 w-full mt-2 z-20">
               <Link href="/map-view" className="w-full sm:w-auto">
                 <button className="flex h-[48px] w-full sm:w-auto justify-center items-center gap-[10px] rounded-lg bg-[#0F71A8] px-6 text-white font-medium hover:bg-[#0c5d8a] transition-colors shadow-sm">
                   Explore NGOs on Map
@@ -181,7 +179,7 @@ export default function Hero() {
             </div>
           </div>
         )}
-      </motion.div>
+      </div>
     </section>
   );
 }

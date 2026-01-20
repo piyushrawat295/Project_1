@@ -28,3 +28,13 @@
 button, a, [role="button"] {
   cursor: pointer !important;
 }
+
+html,
+body {
+  width: 100%;
+  max-width: 100%;
+  overflow-x: hidden;
+  position: relative;
+  margin: 0;
+  padding: 0;
+}

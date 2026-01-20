@@ -20,7 +20,7 @@ export default function RootLayout({
   return (
     <html lang="en" suppressHydrationWarning={true}>
       <body
-        className="bg-white text-gray-900 antialiased"
+        className="bg-white text-gray-900 antialiased overflow-x-hidden"
         style={{ fontFamily: "Satoshi, sans-serif" }}
       >
         <NextAuthProvider>
