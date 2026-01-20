@@ -154,29 +154,31 @@ export default function Services() {
       <div className="mx-auto max-w-[1264px] px-4">
         
         {/* Pills Navigation */}
-        <div className="mb-10 flex flex-wrap items-center justify-start gap-0">
-          {tabs.map((tab, index) => {
-             const isActive = activeTab === tab;
-             return (
-               <div key={tab} className="flex items-center">
-                 <button
-                   onClick={() => setActiveTab(tab)}
-                   className={`px-6 py-2 text-sm font-medium transition-all duration-300 rounded-[4px] ${
-                     isActive
-                       ? "bg-[#0F71A8] text-white shadow-md border border-[#0F71A8]"
-                       : "bg-transparent text-[#666666] hover:text-[#0F71A8] border border-[#999999]"
-                   } ${!isActive ? "mx-2" : ""}`}
-                 >
-                   {tab}
-                 </button>
-                 {/* Vertical Separator logic: Show only if current is NOT active AND next item exists AND next item is NOT active */}
-
-                  {index < tabs.length - 1 && (
-                    <span className="h-6 w-[1px] bg-gray-400 mx-2 hidden sm:block"></span>
-                  )}
-               </div>
-             );
-          })}
+        <div className="mb-10 w-full overflow-x-auto no-scrollbar pb-2">
+          <div className="flex items-center min-w-max">
+            {tabs.map((tab, index) => {
+               const isActive = activeTab === tab;
+               return (
+                 <div key={tab} className="flex items-center">
+                   <button
+                     onClick={() => setActiveTab(tab)}
+                     className={`px-6 py-2 text-sm font-medium transition-all duration-300 rounded-[4px] whitespace-nowrap ${
+                       isActive
+                         ? "bg-[#0F71A8] text-white shadow-md border border-[#0F71A8]"
+                         : "bg-transparent text-[#666666] hover:text-[#0F71A8] border border-[#999999]"
+                     } ${!isActive ? "mx-2" : ""}`}
+                   >
+                     {tab}
+                   </button>
+                   {/* Vertical Separator logic: Show only if current is NOT active AND next item exists AND next item is NOT active */}
+ 
+                    {index < tabs.length - 1 && (
+                      <span className="h-6 w-[1px] bg-gray-400 mx-2 hidden sm:block"></span>
+                    )}
+                 </div>
+               );
+            })}
+          </div>
         </div>
 
         {/* Main Content Area */}

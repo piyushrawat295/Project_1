@@ -81,7 +81,7 @@ export default function Navbar() {
         </div>
 
         {/* RIGHT - NAV LINKS & AUTH */}
-        <div className="flex items-center gap-3 sm:gap-6 xl:gap-8 overflow-x-auto no-scrollbar ml-auto">
+        <div className="flex items-center gap-3 sm:gap-6 xl:gap-8 overflow-x-auto no-scrollbar ml-auto min-w-0 max-w-full pl-2">
           {navLinks.map((link) => {
             const isActive = link.href === '/' 
               ? pathname === '/' 

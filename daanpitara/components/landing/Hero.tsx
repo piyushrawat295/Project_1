@@ -36,7 +36,7 @@ export default function Hero() {
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.6 }}
-        className="mx-auto w-full max-w-[1440px] px-4 sm:px-6 xl:px-[72px] pt-[56px] pb-12"
+        className="mx-auto w-full max-w-[1440px] px-4 sm:px-6 xl:px-[72px] pt-6 sm:pt-[56px] pb-12"
       >
         {/* Top */}
         <div className="flex flex-col xl:flex-row items-center gap-12 xl:gap-[50px]">
@@ -49,7 +49,7 @@ export default function Hero() {
               </h1>
             ) : (
               <h1 className="text-black text-[32px] sm:text-[40px] xl:text-[48px] font-bold leading-tight mb-6">
-                Discover Verified NGOs Across India Through an <span className="text-[#0F71A8]">Interactive Global Map</span>
+                Discover Verified NGOs Across World Through an <span className="text-[#0F71A8]">Interactive Global Map</span>
               </h1>
             )}
 
