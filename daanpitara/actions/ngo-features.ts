@@ -1,7 +1,7 @@
 "use server";
 
 import { db } from "@/lib/db";
-import { beneficiaries, projects, teamMembers, ngos, events, campaigns, documents, proposals, csrOpportunities, volunteers, boardMembers, partners, donations } from "@/lib/schema";
+import { beneficiaries, projects, teamMembers, ngos, events, campaigns, documents, proposals, csrOpportunities, volunteers, boardMembers, partners, donations, users } from "@/lib/schema";
 import { eq, desc, and, ilike, or, sql } from "drizzle-orm";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth-options";
