@@ -1,10 +1,9 @@
 'use client';
 
 import { useState } from 'react';
-// import { signin, loginAdmin } from '@/actions/auth'; // Not used anymore
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { Shield, ArrowLeft, Eye, EyeOff, Mail, Lock, CheckCircle } from 'lucide-react';
+import { Mail, Lock, Eye, EyeOff } from 'lucide-react';
 import { signIn } from 'next-auth/react';
 import AuthBranding from '@/components/auth/AuthBranding';
 
@@ -36,8 +35,7 @@ export default function SigninPage() {
        setError('Invalid email or password');
        setLoading(false);
     } else {
-       // Redirect is handled by the client or we can push
-       router.push('/');
+       router.push('/dashboard');
        router.refresh();
     }
   };
@@ -45,95 +43,91 @@ export default function SigninPage() {
   return (
     <div className="h-screen w-screen bg-white flex flex-col md:flex-row overflow-hidden font-[Satoshi]">
       {/* Left Side - Form */}
-      <div className="w-full md:w-1/2 h-full flex flex-col justify-center px-8 md:px-16 relative overflow-y-auto">
+      <div className="w-full md:w-1/2 h-full flex flex-col items-center justify-center px-8 md:px-16 bg-[#F9FAFB]/30 overflow-hidden">
       
-         <div className="max-w-md mx-auto w-full py-8">
+         <div className="max-w-md mx-auto w-full py-8 text-center md:text-left">
             <h1 className="text-3xl font-bold text-gray-900 mb-2 font-[Satoshi]">
                  Welcome To DaanPitara
             </h1>
-            <p className="text-gray-500 mb-6 font-[Satoshi]">Login to continue</p>
+            <p className="text-gray-500 mb-8 font-medium font-[Satoshi]">Login to continue</p>
 
-            <form onSubmit={handleSubmit} className="space-y-4">
-                <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1 font-[Satoshi]">Email Address</label>
+            <form onSubmit={handleSubmit} className="space-y-5">
+                <div className="space-y-1.5 text-left">
+                    <label className="block text-sm font-bold text-gray-700 font-[Satoshi]">Email Address</label>
                     <div className="relative">
-                        <Mail className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400" />
+                        <Mail className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
                         <input
                             name="email"
                             type="email"
                             placeholder="yoy@example.com"
-                            className="w-full pl-10 pr-4 py-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-[#2B7FFF] focus:border-transparent outline-none transition-all placeholder-[#6A7282]"
+                            className="w-full pl-11 pr-4 py-3 rounded-xl border border-gray-300 focus:ring-4 focus:ring-blue-50 focus:border-blue-500 outline-none transition-all placeholder-gray-400 bg-white shadow-sm"
                             required
                         />
                     </div>
                 </div>
 
-                <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1 font-[Satoshi]">Password</label>
+                <div className="space-y-1.5 text-left">
+                    <label className="block text-sm font-bold text-gray-700 font-[Satoshi]">Password</label>
                     <div className="relative">
-                        <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400" />
+                        <Lock className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
                         <input
                             name="password"
                             type={showPassword ? "text" : "password"}
-                            className="w-full pl-10 pr-12 py-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-[#2B7FFF] focus:border-transparent outline-none transition-all placeholder-[#6A7282]"
+                            className="w-full pl-11 pr-12 py-3 rounded-xl border border-gray-300 focus:ring-4 focus:ring-blue-50 focus:border-blue-500 outline-none transition-all placeholder-gray-400 bg-white shadow-sm"
                             placeholder="••••••••"
                             required
                         />
-                        <button type="button" onClick={togglePasswordVisibility} className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 cursor-pointer">
-                            {showPassword ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
+                        <button type="button" onClick={togglePasswordVisibility} className="absolute right-3.5 top-1/2 -translate-y-1/2 text-gray-400 hover:text-black cursor-pointer bg-white px-1">
+                            {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
                         </button>
                     </div>
                 </div>
                 
-                <div className="flex justify-end">
-                   <Link href="/forgot-password" className="text-sm font-medium text-[#1572A1] hover:text-blue-700 cursor-pointer font-[Satoshi]">Forgot Password?</Link>
+                <div className="flex justify-end -mt-2">
+                   <Link href="/forgot-password" className="text-sm font-bold text-[#1572A1] hover:text-blue-700 cursor-pointer font-[Satoshi]">Forgot Password?</Link>
                 </div>
 
-                {error && <p className="text-sm text-red-600 text-center bg-red-50 p-2 rounded">{error}</p>}
+                {error && <p className="text-sm text-red-600 text-center bg-red-50 p-2.5 rounded-xl border border-red-100 animate-shake">{error}</p>}
 
                 <button
                     type="submit"
                     disabled={loading}
-                    style={{backgroundColor: '#1572A1'}}
-                    className="w-full text-white font-bold py-3 px-4 rounded-lg shadow-lg hover:shadow-xl hover:opacity-90 transition-all duration-200 disabled:opacity-70 disabled:cursor-not-allowed cursor-pointer font-[Satoshi]"
+                    className="w-full bg-[#1572A1] text-white font-bold py-3.5 px-4 rounded-xl shadow-lg hover:shadow-xl hover:opacity-95 transition-all duration-200 disabled:opacity-70 disabled:cursor-not-allowed cursor-pointer font-bold font-[Satoshi] text-lg active:scale-[0.98]"
                 >
                     {loading ? 'Logging In...' : 'Login →'}
                 </button>
 
-                 <div className="relative my-6">
-                    <div className="absolute inset-0 flex items-center"><div className="w-full border-t border-gray-300"></div></div>
-                    <div className="relative flex justify-center text-sm"><span className="px-2 bg-white text-gray-500 font-[Satoshi]">Or Continue with</span></div>
+                 <div className="relative py-2 text-center">
+                    <div className="absolute inset-0 flex items-center"><div className="w-full border-t border-gray-200"></div></div>
+                    <span className="relative px-4 bg-[#F9FAFB] text-sm text-gray-500 font-medium font-[Satoshi]">Or Continue with</span>
                  </div>
 
                  <div className="grid grid-cols-2 gap-4">
                      <button 
                         type="button" 
                         onClick={() => signIn('google')}
-                        className="flex items-center justify-center px-4 py-3 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors cursor-pointer group"
+                        className="flex items-center justify-center px-4 py-3 border border-gray-200 rounded-xl hover:bg-gray-50 transition-colors cursor-pointer group hover:border-gray-300"
                      >
-                         <img src="https://www.svgrepo.com/show/475656/google-color.svg" className="h-5 w-5 mr-2" alt="Google" />
-                         <span className="text-[#4C4B4B] font-medium font-[Satoshi] group-hover:text-black">Google</span>
+                         <img src="https://www.svgrepo.com/show/475656/google-color.svg" className="h-5 w-5 mr-3" alt="Google" />
+                         <span className="text-[#4C4B4B] font-bold font-[Satoshi] group-hover:text-black">Google</span>
                      </button>
                      <button 
                         type="button" 
                         onClick={() => signIn('linkedin')}
-                        className="flex items-center justify-center px-4 py-3 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors cursor-pointer group"
+                        className="flex items-center justify-center px-4 py-3 border border-gray-200 rounded-xl hover:bg-gray-50 transition-colors cursor-pointer group hover:border-gray-300"
                      >
-                         <img src="https://www.svgrepo.com/show/448234/linkedin.svg" className="h-5 w-5 mr-2" alt="LinkedIn" />
-                         <span className="text-[#4C4B4B] font-medium font-[Satoshi] group-hover:text-black">LinkedIn</span>
+                         <img src="https://www.svgrepo.com/show/448234/linkedin.svg" className="h-5 w-5 mr-3" alt="LinkedIn" />
+                         <span className="text-[#4C4B4B] font-bold font-[Satoshi] group-hover:text-black">LinkedIn</span>
                      </button>
                  </div>
                  
                  <div className="mt-6 text-center text-sm text-gray-500">
-                    Don't have an account? <Link href="/signup" className="font-bold text-[#1572A1] hover:underline cursor-pointer">Sign Up</Link>
+                    Don't have an account? <Link href="/signup" className="font-bold text-[#1572A1] hover:underline cursor-pointer ml-1">Sign Up</Link>
                  </div>
             </form>
          </div>
       </div>
-
-       {/* Right Side - Branding (Fixed for both views) */}
-       {/* Right Side - Branding (Fixed for both views) */}
-       <AuthBranding />
+      <AuthBranding />
     </div>
   );
 }

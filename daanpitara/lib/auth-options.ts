@@ -4,7 +4,7 @@ import bcrypt from 'bcryptjs';
 import GoogleProvider from 'next-auth/providers/google';
 import LinkedInProvider from 'next-auth/providers/linkedin';
 import { db } from '@/lib/db';
-import { users } from '@/lib/schema';
+import { users, ngos } from '@/lib/schema';
 import { eq } from 'drizzle-orm';
 
 
@@ -78,7 +78,7 @@ export const authOptions: NextAuthOptions = {
   callbacks: {
     async signIn({ user, account }) {
       if (account?.provider === 'credentials') return true;
-      
+
       if (!user.email) return false;
 
       let dbUser = await db.query.users.findFirst({
@@ -94,15 +94,24 @@ export const authOptions: NextAuthOptions = {
             image: user.image, // Save Google profile image
             role: 'ngo', // Defaulting to NGO
             provider: account?.provider || 'credentials',
-            organizationName: null, 
+            organizationName: null,
           }).returning();
           dbUser = newUser;
+
+          // Also create a shell NGO profile for social users
+          if (dbUser) {
+            await db.insert(ngos).values({
+              ownerId: dbUser.id,
+              name: user.name ? `${user.name}'s NGO` : 'My NGO',
+              verified: false,
+            });
+          }
         } catch (error) {
           console.error('Error creating user via Social Auth:', error);
           return false;
         }
       }
-      
+
       // Inject rule into the user object so it propagates to JWT
       user.role = dbUser.role;
       user.id = dbUser.id.toString();
@@ -129,15 +138,15 @@ export const authOptions: NextAuthOptions = {
       return session;
     },
     async redirect({ url, baseUrl }) {
-       // If the redirect URL is the homepage or signin page, redirect to dashboard
-       if (url === baseUrl || url === `${baseUrl}/signin`) {
-         return `${baseUrl}/dashboard`;
-       }
-       // Allows relative callback URLs
-       if (url.startsWith("/")) return `${baseUrl}${url}`;
-       // Allows callback URLs on the same origin
-       else if (new URL(url).origin === baseUrl) return url;
-       return baseUrl;
+      // If the redirect URL is the homepage or signin page, redirect to onboarding flow
+      if (url === baseUrl || url === `${baseUrl}/signin`) {
+        return `${baseUrl}/dashboard`;
+      }
+      // Allows relative callback URLs
+      if (url.startsWith("/")) return `${baseUrl}${url}`;
+      // Allows callback URLs on the same origin
+      else if (new URL(url).origin === baseUrl) return url;
+      return baseUrl;
     },
   },
 };

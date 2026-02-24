@@ -1,6 +1,7 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { useRouter } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
 import { 
   Building2, 
@@ -20,6 +21,7 @@ import {
 import Image from "next/image";
 import Link from "next/link";
 import { submitOnboarding } from "@/actions/ngo-features";
+import { getNGOProfile } from "@/actions/dashboard";
 
 // --- Types ---
 type OnboardingStep = 1 | 2 | 3 | 4;
@@ -32,9 +34,28 @@ interface UploadedFile {
 }
 
 export default function OnboardingPage() {
+  const router = useRouter();
   const [step, setStep] = useState<OnboardingStep>(1);
   const [profileType, setProfileType] = useState<ProfileType>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
+
+  useEffect(() => {
+    async function checkStatus() {
+      try {
+        const ngo = await getNGOProfile();
+        // If they have uploaded at least one doc, they can see the dashboard status banner
+        if (ngo && (ngo.verified || (ngo.docCount && ngo.docCount > 0))) {
+          router.push("/dashboard");
+        } else {
+          setIsLoading(false);
+        }
+      } catch (err) {
+        setIsLoading(false);
+      }
+    }
+    checkStatus();
+  }, [router]);
   
   // Form State
   const [formData, setFormData] = useState({
@@ -88,6 +109,17 @@ export default function OnboardingPage() {
       setIsSubmitting(false);
     }
   };
+
+  if (isLoading) {
+    return (
+      <div className="min-h-screen bg-[#FFFDF9] flex items-center justify-center">
+        <div className="flex flex-col items-center gap-4">
+          <div className="w-12 h-12 rounded-full border-4 border-blue-100 border-t-blue-500 animate-spin" />
+          <p className="text-gray-500 font-medium animate-pulse">Syncing your NGO profile...</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-[#FFFDF9] flex flex-col font-sans text-[#1A1A1A]">

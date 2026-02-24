@@ -15,7 +15,7 @@ export async function updateUserProfile(data: {
   bio?: string;
 }) {
   const session = await getServerSession(authOptions);
-  
+
   if (!session?.user?.email) {
     return { success: false, message: "Unauthorized" };
   }
@@ -29,7 +29,7 @@ export async function updateUserProfile(data: {
         updatedAt: new Date(),
       })
       .where(eq(users.email, session.user.email));
-    
+
     revalidatePath("/dashboard/profile");
     return { success: true, message: "Profile updated successfully" };
   } catch (error) {
@@ -60,14 +60,14 @@ export async function saveNGODetails(data: {
   lng?: number;
 }) {
   const session = await getServerSession(authOptions);
-  
+
   if (!session?.user?.id) {
     return { success: false, message: "Unauthorized" };
   }
-  
+
   try {
     const userId = parseInt(session.user.id);
-    
+
     // Check if NGO exists for this user
     const existingNGO = await db.query.ngos.findFirst({
       where: eq(ngos.ownerId, userId),
@@ -132,8 +132,14 @@ export async function getNGOProfile() {
 
     const team = await db.select().from(teamMembers).where(eq(teamMembers.ngoId, ngo.id));
     const board = await db.select().from(boardMembers).where(eq(boardMembers.ngoId, ngo.id));
+    const docs = await db.select({ count: sql<number>`count(*)` }).from(documents).where(eq(documents.ngoId, ngo.id));
 
-    return { ...ngo, teamMembers: team, boardMembers: board };
+    return {
+      ...ngo,
+      teamMembers: team,
+      boardMembers: board,
+      docCount: docs[0]?.count || 0
+    };
   } catch (error) {
     console.error("Error fetching NGO profile:", error);
     return null;
@@ -146,19 +152,20 @@ export async function getDashboardData() {
 
   try {
     const userId = parseInt(session.user.id);
-    
+
     // Fetch NGO
     const ngo = await db.query.ngos.findFirst({
       where: eq(ngos.ownerId, userId),
     });
 
     if (!ngo) return {
-      error: "No NGO profile found"
+      error: "No NGO profile found",
+      userRole: (session.user as any).role
     };
 
     // Calculate Profile Completion
     let completionScore = 0;
-    
+
     // 1. Basic Info: Name is mandatory, so if we have a session user, this is effectively true.
     const hasBasicInfo = !!(session.user.name);
 
@@ -175,9 +182,9 @@ export async function getDashboardData() {
 
     // 3. NGO Details: Require more fields for a "complete" profile
     const hasNgoDetails = !!(
-      ngo.name && 
-      ngo.description && 
-      ngo.headquarters && 
+      ngo.name &&
+      ngo.description &&
+      ngo.headquarters &&
       ngo.foundedYear &&
       ngo.registrationNumber &&
       ngo.teamSize &&
@@ -186,7 +193,7 @@ export async function getDashboardData() {
 
     const steps = {
       basicInfo: hasBasicInfo,
-      contactInfo: hasContactInfo, 
+      contactInfo: hasContactInfo,
       ngoDetails: hasNgoDetails,
       documents: false,
       verification: ngo.verified || false
@@ -198,7 +205,7 @@ export async function getDashboardData() {
 
     // Fetch Documents
     const docs = await db.select().from(documents).where(eq(documents.ngoId, ngo.id));
-    
+
     const docStats = {
       total: docs.length,
       verified: docs.filter(d => d.status === 'verified').length,
@@ -224,7 +231,7 @@ export async function getDashboardData() {
       .where(eq(messages.receiverId, userId))
       .orderBy(desc(messages.createdAt))
       .limit(3);
-    
+
     // Count unread messages
     const unreadResult = await db.select({ count: sql<number>`count(*)` })
       .from(messages)
@@ -284,7 +291,8 @@ export async function getDashboardData() {
       insights,
       projects: projectList,
       events: eventList,
-      stats
+      stats,
+      userRole: (session.user as any).role
     };
 
   } catch (error) {

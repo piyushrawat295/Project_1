@@ -1,28 +1,12 @@
+:root {
+  --font-satoshi: "Satoshi", sans-serif;
+}
+
 @import "tailwindcss";
 
 /* app/globals.css */
-@font-face {
-  font-family: "Satoshi";
-  src: url("/fonts/Satoshi-Regular.woff2") format("woff2");
-  font-weight: 400;
-  font-style: normal;
-  font-display: swap;
-}
-
-@font-face {
-  font-family: "Satoshi";
-  src: url("/fonts/Satoshi-Medium.woff2") format("woff2");
-  font-weight: 500;
-  font-style: normal;
-  font-display: swap;
-}
-
-@font-face {
-  font-family: "Satoshi";
-  src: url("/fonts/Satoshi-Bold.woff2") format("woff2");
-  font-weight: 700;
-  font-style: normal;
-  font-display: swap;
+@theme {
+  --font-sans: var(--font-satoshi);
 }
 
 button, a, [role="button"] {
@@ -37,4 +21,15 @@ body {
   position: relative;
   margin: 0;
   padding: 0;
+}
+
+/* Professional NProgress Customization */
+#nprogress .bar {
+  background: #2563eb !important; /* Premium Blue */
+  height: 3px !important;
+  box-shadow: 0 0 10px rgba(37, 99, 235, 0.5);
+}
+
+#nprogress .peg {
+  box-shadow: 0 0 10px #2563eb, 0 0 5px #2563eb !important;
 }

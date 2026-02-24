@@ -71,15 +71,59 @@ export default function DashboardClient({ data }: DashboardClientProps) {
 
   return (
     <div className="space-y-8">
-      
       {/* Header Section */}
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
         <div>
           <h1 className="text-2xl font-bold text-gray-900">User Dashboard</h1>
           <p className="text-gray-500">Your NGO overview at a glance</p>
         </div>
-        {/* User profile dropdown etc is usually in TopHeader, so skipping specific header controls here unless needed */}
       </div>
+
+      {/* Verification Status Banner */}
+      {(!ngo.verified || docStats.pending > 0 || docStats.missing > 0) && (
+        <div className="relative overflow-hidden bg-white border border-gray-100 rounded-3xl p-6 shadow-sm">
+          {/* Decorative background element */}
+          <div className="absolute top-0 right-0 w-64 h-64 bg-blue-50/50 rounded-full blur-3xl -mr-32 -mt-32"></div>
+          
+          <div className="relative z-10 flex flex-col md:flex-row items-start md:items-center justify-between gap-6">
+            <div className="flex items-start gap-4">
+              <div className={`p-3 rounded-2xl ${ngo.verified ? 'bg-green-100 text-green-600' : 'bg-orange-100 text-orange-600'}`}>
+                {ngo.verified ? <CheckCircle2 className="w-6 h-6" /> : <Clock className="w-6 h-6" />}
+              </div>
+              <div>
+                <h3 className="text-lg font-bold text-gray-900">
+                  {ngo.verified ? "Profile Verified" : "Verification In Progress"} 
+                  <span className="ml-2 text-xs font-medium px-2 py-0.5 rounded-full bg-gray-100 text-gray-500 uppercase tracking-wider">NGO ID: {ngo.registrationNumber || 'Pending'}</span>
+                </h3>
+                <p className="text-gray-500 mt-1 max-w-xl">
+                  {ngo.verified 
+                    ? "Great! Your NGO is fully verified. You can now access all fundraising and CSR features."
+                    : `You have ${docStats.pending} documents under review and ${docStats.missing} documents missing. Complete your profile to unlock all features.`}
+                </p>
+                <div className="flex items-center gap-4 mt-4 text-sm font-medium">
+                  <div className="flex items-center gap-1.5 text-green-600">
+                    <CheckCircle2 className="w-4 h-4" /> {docStats.verified} Verified
+                  </div>
+                  <div className="flex items-center gap-1.5 text-orange-500">
+                    <Clock className="w-4 h-4" /> {docStats.pending} Pending
+                  </div>
+                  <div className="flex items-center gap-1.5 text-red-500">
+                    <AlertCircle className="w-4 h-4" /> {docStats.missing} Missing
+                  </div>
+                </div>
+              </div>
+            </div>
+            
+            {!ngo.verified && (
+              <Link href="/onboarding">
+                <button className="whitespace-nowrap px-6 py-3 bg-blue-600 text-white font-bold rounded-xl hover:bg-blue-700 hover:shadow-lg hover:shadow-blue-200 transition-all flex items-center gap-2">
+                  Complete Verification <ChevronRight className="w-4 h-4" />
+                </button>
+              </Link>
+            )}
+          </div>
+        </div>
+      )}
 
       {/* Stats Cards Row */}
       <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-6">

@@ -6,6 +6,7 @@ import { useGlobe } from "@/context/GlobeContext";
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { useSession } from "next-auth/react";
+import Image from "next/image";
 
 export default function Navbar() {
   const { data: session } = useSession();
@@ -42,25 +43,19 @@ export default function Navbar() {
           <div>
           <Link
             href="/"
-            className="flex items-center gap-0 cursor-pointer focus:outline-none focus:ring-2 focus:ring-blue-500 rounded px-1"
+            className="flex items-center gap-0 cursor-pointer focus:outline-none focus:ring-2 focus:ring-blue-500 rounded px-1 transition-transform active:scale-95"
             onClick={() => {
               setViewMode("globe");
               setSelectedLocation(null);
             }}
-            role="button"
-            tabIndex={0}
-            onKeyDown={(e) => {
-              if (e.key === "Enter" || e.key === " ") {
-                setViewMode("globe");
-                setSelectedLocation(null);
-              }
-            }}
-            aria-label="Reset to globe view"
           >
-            <img
+            <Image
               src="/Logo.png"
               alt="DaanPitara"
-              className="h-12 sm:h-20 w-auto object-contain"
+              width={160}
+              height={50}
+              className="h-10 sm:h-12 w-auto object-contain"
+              priority
             />
           </Link>
           </div>
