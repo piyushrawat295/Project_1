@@ -16,7 +16,7 @@ export default function Navbar() {
   const { setSelectedLocation, setViewMode } = useGlobe();
 
   const isAuthPage = pathname === '/signin' || pathname === '/signup' || pathname === '/forgot-password' || pathname === '/verify-otp';
-  const isDashboard = pathname?.startsWith('/dashboard');
+  const isDashboard = pathname?.startsWith('/dashboard') || pathname === '/onboarding';
 
   if (isAuthPage || isDashboard) return null;
 
@@ -69,35 +69,21 @@ export default function Navbar() {
         {/* RIGHT - NAV LINKS & AUTH */}
         <div className="flex items-center ml-auto min-w-0 max-w-full pl-1 gap-2 sm:gap-6 xl:gap-8">
           
-          {/* Scrollable Links Container */}
-          <div className="flex items-center gap-2 sm:gap-6 xl:gap-8 overflow-x-auto no-scrollbar max-w-full flex-1 justify-end sm:justify-start">
+          {/* Links Container */}
+          <div className="flex items-center gap-6 sm:gap-8">
             {navLinks.map((link) => {
               const isActive = link.href === '/' 
                 ? pathname === '/' 
                 : (pathname?.startsWith(link.href) && (pathname === link.href || pathname[link.href.length] === '/'));
 
               return (
-                <div key={link.label} className="shrink-0">
-                  <Link
-                    href={link.href}
-                    className={`text-[13px] sm:text-[16px] font-medium transition-colors relative group whitespace-nowrap ${isActive ? 'text-blue-600' : 'text-gray-600 hover:text-blue-600'}`}
-                  >
-                    {link.label === "Contact Us" ? (
-                      <>
-                        <span className="sm:hidden">Contact</span>
-                        <span className="hidden sm:inline">Contact Us</span>
-                      </>
-                    ) : link.label === "About Us" ? (
-                      <>
-                        <span className="sm:hidden">About</span>
-                        <span className="hidden sm:inline">About Us</span>
-                      </>
-                    ) : (
-                      link.label
-                    )}
-                    <span className={`absolute -bottom-1 left-0 h-0.5 bg-blue-600 transition-all duration-300 ${isActive ? 'w-full' : 'w-0 group-hover:w-full'}`}></span>
-                  </Link>
-                </div>
+                <Link
+                  key={link.label}
+                  href={link.href}
+                  className={`text-[15px] sm:text-[16px] font-bold transition-colors whitespace-nowrap ${isActive ? 'text-blue-600' : 'text-gray-600 hover:text-blue-600'}`}
+                >
+                  {link.label}
+                </Link>
               );
             })}
           </div>

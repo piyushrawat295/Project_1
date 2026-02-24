@@ -23,7 +23,7 @@ export default function Footer() {
     pathname === "/signup" ||
     pathname === "/forgot-password" ||
     pathname === "/verify-otp";
-  const isDashboard = pathname?.startsWith('/dashboard');
+  const isDashboard = pathname?.startsWith('/dashboard') || pathname === '/onboarding';
 
   if (isAuthPage || isDashboard) return null;
 

@@ -22,12 +22,12 @@ export async function getBeneficiaries(query?: string, category?: string) {
 
     // Build conditions
     const conditions = [eq(beneficiaries.ngoId, ngo.id)];
-    
+
     if (category && category !== "All Status") { // "All Status" comes from UI sometimes
-       const validCategories = ["Child", "Women", "Elderly", "Other"];
-       if (validCategories.includes(category)) {
-          conditions.push(eq(beneficiaries.category, category));
-       }
+      const validCategories = ["Child", "Women", "Elderly", "Other"];
+      if (validCategories.includes(category)) {
+        conditions.push(eq(beneficiaries.category, category));
+      }
     }
 
     if (query) {
@@ -50,16 +50,16 @@ export async function getBeneficiaries(query?: string, category?: string) {
       location: beneficiaries.location,
       registeredAt: beneficiaries.registeredAt,
     })
-    .from(beneficiaries)
-    .leftJoin(projects, eq(beneficiaries.projectId, projects.id))
-    .where(and(...conditions))
-    .orderBy(desc(beneficiaries.registeredAt));
+      .from(beneficiaries)
+      .leftJoin(projects, eq(beneficiaries.projectId, projects.id))
+      .where(and(...conditions))
+      .orderBy(desc(beneficiaries.registeredAt));
 
     // Calculate stats
     // Note: These stats should be over ALL beneficiaries, not just filtered ones, usually?
     // But for the top cards, we usually want totals.
     const allBeneficiaries = await db.select().from(beneficiaries).where(eq(beneficiaries.ngoId, ngo.id));
-    
+
     const stats = {
       total: allBeneficiaries.length,
       children: allBeneficiaries.filter(b => b.category === 'Child').length,
@@ -80,7 +80,7 @@ export async function createBeneficiary(data: any) {
   if (!session?.user?.id) return { error: "Unauthorized" };
 
   try {
-     const ngo = await db.query.ngos.findFirst({
+    const ngo = await db.query.ngos.findFirst({
       where: eq(ngos.ownerId, parseInt(session.user.id)),
     });
 
@@ -122,17 +122,17 @@ export async function getProjects(query?: string, status?: string) {
     const conditions = [eq(projects.ngoId, ngo.id)];
 
     if (status && status !== "All") {
-        if (status === 'Funded') {
-             // Logic for funded? Status might be 'active' and raised >= budget?
-             // Or just use status field matches.
-             // Let's assume there's a status enum or string in DB: 'active', 'completed', 'seeking_funding'
-        } else {
-             conditions.push(eq(projects.status, status.toLowerCase().replace(' ', '_')));
-        }
+      if (status === 'Funded') {
+        // Logic for funded? Status might be 'active' and raised >= budget?
+        // Or just use status field matches.
+        // Let's assume there's a status enum or string in DB: 'active', 'completed', 'seeking_funding'
+      } else {
+        conditions.push(eq(projects.status, status.toLowerCase().replace(' ', '_')));
+      }
     }
 
     if (query) {
-       conditions.push(ilike(projects.title, `%${query}%`));
+      conditions.push(ilike(projects.title, `%${query}%`));
     }
 
     const data = await db.select().from(projects)
@@ -141,10 +141,10 @@ export async function getProjects(query?: string, status?: string) {
 
     // Stats
     const allProjects = await db.select().from(projects).where(eq(projects.ngoId, ngo.id));
-    
+
     // Calculate total budget properly handling nulls
     const totalBudget = allProjects.reduce((sum, p) => sum + (p.totalBudget || 0), 0);
-    
+
     const stats = {
       total: allProjects.length,
       active: allProjects.filter(p => p.status === 'active').length,
@@ -167,7 +167,7 @@ export async function getVolunteers(query?: string, status?: string) {
   if (!session?.user?.id) return { error: "Unauthorized" };
 
   try {
-     const ngo = await db.query.ngos.findFirst({
+    const ngo = await db.query.ngos.findFirst({
       where: eq(ngos.ownerId, parseInt(session.user.id)),
     });
 
@@ -176,39 +176,39 @@ export async function getVolunteers(query?: string, status?: string) {
     const conditions = [eq(volunteers.ngoId, ngo.id)];
 
     if (query) {
-       const search = or(
-           ilike(volunteers.name, `%${query}%`),
-           ilike(volunteers.skills, `%${query}%`)
-       );
-       if (search) conditions.push(search);
+      const search = or(
+        ilike(volunteers.name, `%${query}%`),
+        ilike(volunteers.skills, `%${query}%`)
+      );
+      if (search) conditions.push(search);
     }
 
     if (status && status !== "All" && status !== "All Status") {
-        conditions.push(eq(volunteers.status, status));
+      conditions.push(eq(volunteers.status, status));
     }
 
     const data = await db.select().from(volunteers)
       .where(and(...conditions))
       .orderBy(desc(volunteers.createdAt));
-    
+
     // Stats from actual data
     const allVolunteers = await db.select().from(volunteers).where(eq(volunteers.ngoId, ngo.id));
-    
+
     // Calculate hours (mock logic if field missing, or just 0)
     // We don't have hours in schema yet, assumed per user requirement to just have basic registration
-    
+
     const stats = {
-        total: allVolunteers.length,
-        active: allVolunteers.filter(v => v.status === 'Active').length,
-        pending: allVolunteers.filter(v => v.status === 'Pending').length,
-        totalHours: 0 
+      total: allVolunteers.length,
+      active: allVolunteers.filter(v => v.status === 'Active').length,
+      pending: allVolunteers.filter(v => v.status === 'Pending').length,
+      totalHours: 0
     };
 
     return { data, stats };
 
   } catch (error) {
-      console.error("Error fetching volunteers:", error);
-      return { error: "Failed to fetch volunteers" };
+    console.error("Error fetching volunteers:", error);
+    return { error: "Failed to fetch volunteers" };
   }
 }
 
@@ -217,7 +217,7 @@ export async function createVolunteer(data: any) {
   if (!session?.user?.id) return { error: "Unauthorized" };
 
   try {
-     const ngo = await db.query.ngos.findFirst({
+    const ngo = await db.query.ngos.findFirst({
       where: eq(ngos.ownerId, parseInt(session.user.id)),
     });
 
@@ -250,14 +250,14 @@ export async function getEvents(query?: string) {
   if (!session?.user?.id) return { error: "Unauthorized" };
 
   try {
-     const ngo = await db.query.ngos.findFirst({
+    const ngo = await db.query.ngos.findFirst({
       where: eq(ngos.ownerId, parseInt(session.user.id)),
     });
 
     if (!ngo) return { error: "No NGO profile found" };
 
     const conditions = [eq(events.ngoId, ngo.id)];
-    
+
     if (query) {
       conditions.push(ilike(events.title, `%${query}%`));
     }
@@ -265,11 +265,11 @@ export async function getEvents(query?: string) {
     const data = await db.select().from(events)
       .where(and(...conditions))
       .orderBy(desc(events.date));
-    
+
     // Stats
     const allEvents = await db.select().from(events).where(eq(events.ngoId, ngo.id));
     const upcoming = allEvents.filter(e => e.status === 'upcoming').length;
-    
+
     const stats = {
       total: allEvents.length,
       upcoming,
@@ -291,7 +291,7 @@ export async function getCampaigns(query?: string) {
   if (!session?.user?.id) return { error: "Unauthorized" };
 
   try {
-     const ngo = await db.query.ngos.findFirst({
+    const ngo = await db.query.ngos.findFirst({
       where: eq(ngos.ownerId, parseInt(session.user.id)),
     });
 
@@ -308,7 +308,7 @@ export async function getCampaigns(query?: string) {
       .orderBy(desc(campaigns.createdAt));
 
     const allCampaigns = await db.select().from(campaigns).where(eq(campaigns.ngoId, ngo.id));
-    
+
     const stats = {
       total: allCampaigns.length,
       active: allCampaigns.filter(c => c.status === 'active').length,
@@ -341,11 +341,11 @@ export async function getRecords(query?: string, category?: string) {
     if (query) {
       conditions.push(ilike(documents.name, `%${query}%`));
     }
-    
+
     // If category is provided (and not 'All'), we could filter by type if type maps to category
     if (category && category !== 'All') {
-         // Assuming 'type' field in documents table maps to category roughly
-         conditions.push(eq(documents.type, category));
+      // Assuming 'type' field in documents table maps to category roughly
+      conditions.push(eq(documents.type, category));
     }
 
     const data = await db.select().from(documents)
@@ -353,7 +353,7 @@ export async function getRecords(query?: string, category?: string) {
       .orderBy(desc(documents.createdAt));
 
     const allDocs = await db.select().from(documents).where(eq(documents.ngoId, ngo.id));
-    
+
     const now = new Date();
     const thirtyDaysFromNow = new Date();
     thirtyDaysFromNow.setDate(now.getDate() + 30);
@@ -394,32 +394,32 @@ export async function getCollaborations(query?: string, status?: string) {
     const conditions = [eq(partners.ngoId, ngo.id)];
 
     if (query) {
-        const searchCondition = or(
-            ilike(partners.organizationName, `%${query}%`),
-            ilike(partners.contactPerson, `%${query}%`)
-        );
-        if (searchCondition) {
-            conditions.push(searchCondition);
-        }
+      const searchCondition = or(
+        ilike(partners.organizationName, `%${query}%`),
+        ilike(partners.contactPerson, `%${query}%`)
+      );
+      if (searchCondition) {
+        conditions.push(searchCondition);
+      }
     }
 
     if (status && status !== 'All' && status !== 'All Status') {
-         conditions.push(ilike(partners.status, status));
+      conditions.push(ilike(partners.status, status));
     }
-    
+
     // Sort
     const data = await db.select().from(partners)
-        .where(and(...conditions))
-        .orderBy(desc(partners.createdAt));
+      .where(and(...conditions))
+      .orderBy(desc(partners.createdAt));
 
     // Stats
     const allPartners = await db.select().from(partners).where(eq(partners.ngoId, ngo.id));
 
     const stats = {
-        total: allPartners.length,
-        active: allPartners.filter(p => p.status?.toLowerCase() === 'active').length,
-        pending: allPartners.filter(p => p.status?.toLowerCase() === 'pending').length,
-        jointProjs: allPartners.filter(p => p.type === 'Corporate').length // Proxy stat if no real link
+      total: allPartners.length,
+      active: allPartners.filter(p => p.status?.toLowerCase() === 'active').length,
+      pending: allPartners.filter(p => p.status?.toLowerCase() === 'pending').length,
+      jointProjs: allPartners.filter(p => p.type === 'Corporate').length // Proxy stat if no real link
     };
 
     return { data, stats };
@@ -437,7 +437,7 @@ export async function createTeamMember(data: any) {
   if (!session?.user?.id) return { error: "Unauthorized" };
 
   try {
-     const ngo = await db.query.ngos.findFirst({
+    const ngo = await db.query.ngos.findFirst({
       where: eq(ngos.ownerId, parseInt(session.user.id)),
     });
 
@@ -464,7 +464,7 @@ export async function createBoardMember(data: any) {
   if (!session?.user?.id) return { error: "Unauthorized" };
 
   try {
-     const ngo = await db.query.ngos.findFirst({
+    const ngo = await db.query.ngos.findFirst({
       where: eq(ngos.ownerId, parseInt(session.user.id)),
     });
 
@@ -535,7 +535,7 @@ export async function createEvent(data: any) {
       location: data.location,
       beneficiariesCount: data.expectedBeneficiaries ? parseInt(data.expectedBeneficiaries) : 0,
       description: data.description,
-      status: 'upcoming' 
+      status: 'upcoming'
     });
 
 
@@ -665,17 +665,83 @@ export async function createDocument(data: any) {
   }
 }
 
+export async function submitOnboarding(onboardingData: any, uploadedDocs: any[]) {
+  const session = await getServerSession(authOptions);
+  if (!session?.user?.id) return { error: "Unauthorized" };
+
+  try {
+    const userId = parseInt(session.user.id);
+
+    // 1. Create or Update NGO Profile
+    let ngo = await db.query.ngos.findFirst({
+      where: eq(ngos.ownerId, userId),
+    });
+
+    const ngoPayload = {
+      ownerId: userId,
+      name: onboardingData.organizationName,
+      registrationNumber: onboardingData.registrationNumber,
+      establishedYear: parseInt(onboardingData.establishedYear) || null,
+      headquarters: onboardingData.address,
+      description: onboardingData.description,
+      focusAreas: onboardingData.focusedAreas,
+      operationalStates: onboardingData.operationalRegions.split(',').map((s: string) => s.trim()),
+      type: onboardingData.profileType || 'NGO',
+      verified: false,
+    };
+
+    if (ngo) {
+      await db.update(ngos).set(ngoPayload).where(eq(ngos.id, ngo.id));
+    } else {
+      const result = await db.insert(ngos).values(ngoPayload).returning({ id: ngos.id });
+      ngo = result[0] as any;
+    }
+
+    if (!ngo) throw new Error("Failed to resolve NGO profile");
+
+    // 2. Save Documents
+    if (uploadedDocs && uploadedDocs.length > 0) {
+      const docRecords = uploadedDocs.map(doc => ({
+        ngoId: (ngo as any).id,
+        name: doc.title,
+        type: 'verification_doc',
+        category: 'compliance',
+        url: doc.url || `/mock/uploads/${doc.fileName}`,
+        status: 'pending',
+        createdAt: new Date(),
+        updatedAt: new Date(),
+      }));
+
+      await db.insert(documents).values(docRecords);
+    }
+
+    // 3. Update User role if needed (though usually user is already 'ngo' if they are here)
+    await db.update(users).set({
+      role: 'ngo',
+      organizationName: onboardingData.organizationName
+    }).where(eq(users.id, userId));
+
+    revalidatePath("/dashboard");
+    revalidatePath("/onboarding");
+    return { success: true };
+
+  } catch (error) {
+    console.error("Onboarding submission error:", error);
+    return { error: "Failed to submit onboarding data" };
+  }
+}
+
 // --- Delete Actions ---
 
 export async function deleteBeneficiary(id: number) {
   const session = await getServerSession(authOptions);
   if (!session?.user?.id) return { error: "Unauthorized" };
   try {
-     await db.delete(beneficiaries).where(eq(beneficiaries.id, id));
-     revalidatePath("/dashboard/beneficiaries");
-     return { success: true };
+    await db.delete(beneficiaries).where(eq(beneficiaries.id, id));
+    revalidatePath("/dashboard/beneficiaries");
+    return { success: true };
   } catch (err) {
-      return { error: "Failed to delete beneficiary" };
+    return { error: "Failed to delete beneficiary" };
   }
 }
 
@@ -683,14 +749,14 @@ export async function deleteProject(id: number) {
   const session = await getServerSession(authOptions);
   if (!session?.user?.id) return { error: "Unauthorized" };
   try {
-     // NOTE: dependent records (beneficiaries, donations) might fail if no cascade delete.
-     // For now assuming cascade or soft delete not required strictly.
-     await db.delete(projects).where(eq(projects.id, id));
-     revalidatePath("/dashboard/projects");
-     return { success: true };
+    // NOTE: dependent records (beneficiaries, donations) might fail if no cascade delete.
+    // For now assuming cascade or soft delete not required strictly.
+    await db.delete(projects).where(eq(projects.id, id));
+    revalidatePath("/dashboard/projects");
+    return { success: true };
   } catch (err) {
-      console.error(err);
-      return { error: "Failed to delete project (may have linked data)" };
+    console.error(err);
+    return { error: "Failed to delete project (may have linked data)" };
   }
 }
 
@@ -698,11 +764,11 @@ export async function deleteVolunteer(id: number) {
   const session = await getServerSession(authOptions);
   if (!session?.user?.id) return { error: "Unauthorized" };
   try {
-     await db.delete(volunteers).where(eq(volunteers.id, id));
-     revalidatePath("/dashboard/volunteers");
-     return { success: true };
+    await db.delete(volunteers).where(eq(volunteers.id, id));
+    revalidatePath("/dashboard/volunteers");
+    return { success: true };
   } catch (err) {
-      return { error: "Failed to delete volunteer" };
+    return { error: "Failed to delete volunteer" };
   }
 }
 
@@ -710,11 +776,11 @@ export async function deletePartner(id: number) {
   const session = await getServerSession(authOptions);
   if (!session?.user?.id) return { error: "Unauthorized" };
   try {
-     await db.delete(partners).where(eq(partners.id, id));
-     revalidatePath("/dashboard/collaboration");
-     return { success: true };
+    await db.delete(partners).where(eq(partners.id, id));
+    revalidatePath("/dashboard/collaboration");
+    return { success: true };
   } catch (err) {
-      return { error: "Failed to delete partner" };
+    return { error: "Failed to delete partner" };
   }
 }
 
@@ -722,12 +788,12 @@ export async function deleteEvent(id: number) {
   const session = await getServerSession(authOptions);
   if (!session?.user?.id) return { error: "Unauthorized" };
   try {
-     await db.delete(events).where(eq(events.id, id));
-     revalidatePath("/dashboard/events"); // Assuming this is the path
-     revalidatePath("/dashboard/digital-presence"); // or here
-     return { success: true };
+    await db.delete(events).where(eq(events.id, id));
+    revalidatePath("/dashboard/events"); // Assuming this is the path
+    revalidatePath("/dashboard/digital-presence"); // or here
+    return { success: true };
   } catch (err) {
-      return { error: "Failed to delete event" };
+    return { error: "Failed to delete event" };
   }
 }
 
@@ -735,27 +801,27 @@ export async function deleteRecord(id: number) {
   const session = await getServerSession(authOptions);
   if (!session?.user?.id) return { error: "Unauthorized" };
   try {
-     await db.delete(documents).where(eq(documents.id, id));
-     revalidatePath("/dashboard/records");
-     return { success: true };
+    await db.delete(documents).where(eq(documents.id, id));
+    revalidatePath("/dashboard/records");
+    return { success: true };
   } catch (err) {
-      return { error: "Failed to delete record" };
+    return { error: "Failed to delete record" };
   }
 }
 
 export async function deleteDocument(id: number) {
-    return deleteRecord(id); // Alias
+  return deleteRecord(id); // Alias
 }
 
 export async function deleteCampaign(id: number) {
   const session = await getServerSession(authOptions);
   if (!session?.user?.id) return { error: "Unauthorized" };
   try {
-     await db.delete(campaigns).where(eq(campaigns.id, id));
-     revalidatePath("/dashboard/funding");
-     return { success: true };
+    await db.delete(campaigns).where(eq(campaigns.id, id));
+    revalidatePath("/dashboard/funding");
+    return { success: true };
   } catch (err) {
-      return { error: "Failed to delete campaign" };
+    return { error: "Failed to delete campaign" };
   }
 }
 
@@ -763,11 +829,11 @@ export async function deleteTeamMember(id: number) {
   const session = await getServerSession(authOptions);
   if (!session?.user?.id) return { error: "Unauthorized" };
   try {
-     await db.delete(teamMembers).where(eq(teamMembers.id, id));
-     revalidatePath("/dashboard/ngo-profile");
-     return { success: true };
+    await db.delete(teamMembers).where(eq(teamMembers.id, id));
+    revalidatePath("/dashboard/ngo-profile");
+    return { success: true };
   } catch (err) {
-      return { error: "Failed to delete team member" };
+    return { error: "Failed to delete team member" };
   }
 }
 
@@ -775,11 +841,11 @@ export async function deleteBoardMember(id: number) {
   const session = await getServerSession(authOptions);
   if (!session?.user?.id) return { error: "Unauthorized" };
   try {
-     await db.delete(boardMembers).where(eq(boardMembers.id, id));
-     revalidatePath("/dashboard/ngo-profile");
-     return { success: true };
+    await db.delete(boardMembers).where(eq(boardMembers.id, id));
+    revalidatePath("/dashboard/ngo-profile");
+    return { success: true };
   } catch (err) {
-      return { error: "Failed to delete board member" };
+    return { error: "Failed to delete board member" };
   }
 }
 
