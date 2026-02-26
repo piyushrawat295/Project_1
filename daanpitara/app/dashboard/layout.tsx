@@ -5,6 +5,7 @@ import { useSession } from "next-auth/react";
 import TopHeader from "@/components/dashboard/TopHeader";
 import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
+import { usePathname } from "next/navigation";
 
 export default function DashboardLayout({
   children,
@@ -13,6 +14,7 @@ export default function DashboardLayout({
 }) {
   /* eslint-disable no-console */
   const { data: session, status } = useSession();
+  const pathname = usePathname();
   console.log("DashboardLayout Session:", { status, role: session?.user?.role, email: session?.user?.email });
 
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
@@ -26,6 +28,11 @@ export default function DashboardLayout({
     window.addEventListener('resize', checkMobile);
     return () => window.removeEventListener('resize', checkMobile);
   }, []);
+
+  // Admin routes use their own layout — bypass the NGO sidebar/header
+  if (pathname.startsWith('/dashboard/admin')) {
+    return <>{children}</>;
+  }
 
   return (
     <div className="min-h-screen bg-gray-50 flex font-sans">
@@ -61,3 +68,4 @@ export default function DashboardLayout({
     </div>
   );
 }
+
