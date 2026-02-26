@@ -34,19 +34,25 @@ export default function AdminSidebar() {
   const pathname = usePathname();
 
   return (
-    <aside className="fixed left-0 top-0 h-screen w-[250px] bg-white border-r border-gray-100 flex flex-col z-50 font-sans shadow-sm">
+    <aside className="fixed left-0 top-0 h-screen w-[260px] bg-[#FAFBFC] border-r border-gray-100/80 flex flex-col z-50 font-sans shadow-[1px_0_8px_rgba(0,0,0,0.03)]">
       {/* Logo */}
-      <div className="px-5 pt-5 pb-4 border-b border-gray-100">
-        <Link href="/dashboard/admin" className="flex items-center gap-2.5">
-          <div className="w-10 h-10 rounded-full bg-[#1572A1] flex items-center justify-center">
-            <Image src="/Logo.png" alt="DaanPitara" width={28} height={28} className="object-contain" />
+      <div className="px-5 pt-4 pb-4 border-b border-gray-100/60">
+        <Link href="/dashboard/admin" className="flex items-center gap-3">
+          <Image src="/Logo.png" alt="DaanPitara" width={40} height={40} className="object-contain rounded-xl" />
+          <div>
+            <span className="text-[17px] font-bold text-gray-900 tracking-tight leading-none">DaanPitara</span>
+            <span className="block text-[11px] text-gray-400 font-medium mt-0.5">Admin Portal</span>
           </div>
-          <span className="text-lg font-bold text-gray-900 tracking-tight">DaanPitara</span>
         </Link>
       </div>
 
+      {/* Navigation Label */}
+      <div className="px-5 pt-5 pb-1">
+        <span className="text-[10px] font-bold text-gray-400/80 uppercase tracking-widest">Main Menu</span>
+      </div>
+
       {/* Navigation */}
-      <nav className="flex-1 overflow-y-auto py-3 px-3 space-y-0.5 [&::-webkit-scrollbar]:hidden">
+      <nav className="flex-1 overflow-y-auto py-2 px-3 space-y-1 scrollbar-hide">
         {adminNavItems.map((item) => {
           const isActive = pathname === item.href || 
             (item.href !== "/dashboard/admin" && pathname.startsWith(item.href));
@@ -57,15 +63,19 @@ export default function AdminSidebar() {
             <Link
               key={item.href}
               href={item.href}
-              className={`flex items-center gap-3 px-3 py-2.5 rounded-lg transition-all duration-200 group text-[14px]
+              className={`flex items-center gap-3 px-3 py-2.5 rounded-xl transition-all duration-200 group text-[14px] relative
                 ${active
-                  ? "bg-[#F59E0B] text-white font-semibold shadow-sm"
-                  : "text-gray-600 hover:bg-gray-50 hover:text-gray-900"
+                  ? "bg-[#F59E0B]/10 text-[#B45309] font-semibold"
+                  : "text-gray-500 hover:bg-gray-100/60 hover:text-gray-800"
                 }`}
             >
+              {/* Left border indicator for active */}
+              {active && (
+                <span className="absolute left-0 top-1/2 -translate-y-1/2 w-[3px] h-5 bg-[#F59E0B] rounded-r-full" />
+              )}
               <item.icon
-                className={`w-[18px] h-[18px] flex-shrink-0 transition-colors
-                  ${active ? "text-white" : "text-gray-400 group-hover:text-gray-600"}`}
+                className={`w-[18px] h-[18px] flex-shrink-0 transition-colors duration-200
+                  ${active ? "text-[#D97706]" : "text-gray-400 group-hover:text-gray-600"}`}
               />
               <span className="whitespace-nowrap overflow-hidden">{item.label}</span>
             </Link>
@@ -74,12 +84,12 @@ export default function AdminSidebar() {
       </nav>
 
       {/* Exit Admin Portal */}
-      <div className="p-3 border-t border-gray-100">
+      <div className="p-3 border-t border-gray-100/60">
         <Link
-          href="/dashboard"
-          className="flex items-center gap-3 px-3 py-2.5 rounded-lg text-gray-500 hover:bg-gray-50 hover:text-gray-900 transition-all duration-200 text-[14px] group"
+          href="/"
+          className="flex items-center gap-3 px-3 py-2.5 rounded-xl text-gray-400 hover:bg-red-50 hover:text-red-600 transition-all duration-200 text-[14px] group"
         >
-          <ArrowLeft className="w-[18px] h-[18px] text-gray-400 group-hover:text-gray-600 flex-shrink-0" />
+          <ArrowLeft className="w-[18px] h-[18px] group-hover:text-red-500 flex-shrink-0 transition-colors duration-200" />
           <span>Exit Admin Portal</span>
         </Link>
       </div>

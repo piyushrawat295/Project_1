@@ -35,7 +35,7 @@ export default function DashboardLayout({
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 flex font-sans">
+    <div className="min-h-screen bg-[#F8F9FB] flex font-sans">
       {/* Sidebar */}
       <Sidebar 
         collapsed={sidebarCollapsed} 
@@ -47,7 +47,7 @@ export default function DashboardLayout({
       {/* Mobile Backdrop */}
       {isMobile && mobileOpen && (
         <div 
-          className="fixed inset-0 bg-black/50 z-40 transition-opacity duration-300"
+          className="fixed inset-0 bg-black/40 backdrop-blur-sm z-40 transition-opacity duration-300"
           onClick={() => setMobileOpen(false)}
         />
       )}
@@ -59,8 +59,8 @@ export default function DashboardLayout({
       >
         <TopHeader onMenuClick={() => setMobileOpen(true)} />
         
-        <main className="flex-1 p-6 md:p-8 overflow-y-auto">
-          <div className="max-w-[1600px] mx-auto w-full space-y-8 animate-fade-in">
+        <main className="flex-1 px-6 py-6 md:px-8 md:py-6 overflow-y-auto">
+          <div className="max-w-[1600px] mx-auto w-full space-y-8 animate-fade-in-up">
             {children}
           </div>
         </main>
@@ -68,4 +68,3 @@ export default function DashboardLayout({
     </div>
   );
 }
-

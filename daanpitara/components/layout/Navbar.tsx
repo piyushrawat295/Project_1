@@ -30,7 +30,7 @@ export default function Navbar() {
   ];
 
   const user = session?.user;
-  const dashboardLink = user?.role === 'admin' ? '/admin' : user?.role === 'ngo' ? '/dashboard' : '/';
+  const dashboardLink = user?.role === 'admin' ? '/dashboard/admin' : user?.role === 'ngo' ? '/dashboard' : '/';
 
   return (
     <header 

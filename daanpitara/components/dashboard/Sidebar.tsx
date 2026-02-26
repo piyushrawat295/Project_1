@@ -76,10 +76,8 @@ export default function Sidebar({
   }, []);
 
   const sidebarWidth = collapsed ? 80 : 280;
-  // On mobile: fixed width 280. If open x=0, else x=-100% (or -280)
-  // On desktop: width dynamic, x=0
   const currentWidth = isMobile ? 280 : sidebarWidth;
-  const currentX = isMobile ? (mobileOpen ? 0 : -320) : 0; // -320 to be sure it's out
+  const currentX = isMobile ? (mobileOpen ? 0 : -320) : 0;
 
   return (
     <motion.aside 
@@ -88,27 +86,27 @@ export default function Sidebar({
         width: currentWidth, 
         x: currentX 
       }}
-      transition={{ duration: 0.3, ease: "easeInOut" }}
-      className="fixed left-0 top-0 h-screen border-r border-gray-100 bg-white shadow-sm flex flex-col z-50 font-sans"
+      transition={{ duration: 0.25, ease: "easeInOut" }}
+      className="fixed left-0 top-0 h-screen border-r border-gray-100/80 bg-[#FAFBFC] shadow-[1px_0_8px_rgba(0,0,0,0.03)] flex flex-col z-50 font-sans"
     >
       {/* Mobile Close Button */}
       {isMobile && (
         <button 
           onClick={() => setMobileOpen?.(false)}
-          className="absolute top-4 right-4 p-2 text-gray-500 hover:bg-gray-100 rounded-lg"
+          className="absolute top-4 right-4 p-2 text-gray-400 hover:bg-gray-100 rounded-xl transition-colors z-10"
         >
-          <X className="w-6 h-6" />
+          <X className="w-5 h-5" />
         </button>
       )}
 
       {/* Logo & Toggle */}
-      <div className={`relative flex flex-col ${collapsed && !isMobile ? 'items-center justify-center py-4' : 'items-start justify-start pl-6 pt-4'} border-b border-gray-50 bg-white transition-all duration-300`}>
+      <div className={`relative flex flex-col ${collapsed && !isMobile ? 'items-center justify-center py-4' : 'items-start justify-start pl-5 pt-4'} border-b border-gray-100/60 bg-transparent transition-all duration-300`}>
         
         {/* Toggle Button - Desktop Only */}
         {!isMobile && (
           <button 
             onClick={() => setCollapsed(!collapsed)}
-            className={`absolute top-4 right-4 p-1.5 rounded-lg hover:bg-gray-100 text-gray-500 transition-colors z-20 ${collapsed ? 'relative top-0 right-0 mx-auto mb-2' : ''}`}
+            className={`absolute top-4 right-4 p-1.5 rounded-xl hover:bg-gray-100 text-gray-400 hover:text-gray-600 transition-all duration-200 z-20 ${collapsed ? 'relative top-0 right-0 mx-auto mb-2' : ''}`}
           >
             {collapsed ? <PanelLeftOpen className="w-5 h-5" /> : <PanelLeftClose className="w-5 h-5" />}
           </button>
@@ -117,9 +115,10 @@ export default function Sidebar({
         <AnimatePresence>
           {!collapsed || isMobile ? (
             <motion.div 
-              initial={{ opacity: 0, scale: 0.9, x: -20 }}
-              animate={{ opacity: 1, scale: 1, x: 0 }}
-              exit={{ opacity: 0, scale: 0.9, x: -20 }}
+              initial={{ opacity: 0, scale: 0.95 }}
+              animate={{ opacity: 1, scale: 1 }}
+              exit={{ opacity: 0, scale: 0.95 }}
+              transition={{ duration: 0.2 }}
               className="flex flex-col items-start mt-0"
             >
                <div className="w-[96px] h-[88px] relative mb-0">
@@ -133,11 +132,11 @@ export default function Sidebar({
                </div>
             </motion.div>
           ) : (
-             // Collapsed State Logo (Small) - Desktop Only
              <motion.div 
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
+              transition={{ duration: 0.2 }}
               className="mb-2"
             >
                <Image
@@ -159,19 +158,20 @@ export default function Sidebar({
              initial={{ opacity: 0, height: 0 }}
              animate={{ opacity: 1, height: 'auto' }}
              exit={{ opacity: 0, height: 0 }}
-             className="px-5 py-6"
+             transition={{ duration: 0.2 }}
+             className="px-5 py-5"
            >
-              <h2 className="text-xl font-bold text-gray-900 flex items-center gap-2">
-                Hello {firstName} <span className="text-2xl">👋</span>
+              <h2 className="text-lg font-semibold text-gray-900 flex items-center gap-2">
+                Hello {firstName} <span className="text-xl">👋</span>
               </h2>
            </motion.div>
         )}
       </AnimatePresence>
 
       {/* Navigation */}
-      <div className="flex-1 overflow-y-auto py-2 px-3 space-y-1 [&::-webkit-scrollbar]:hidden -mr-1 pr-1">
+      <div className="flex-1 overflow-y-auto py-2 px-3 space-y-0.5 scrollbar-hide">
         {(!collapsed || isMobile) && (
-          <div className="text-[11px] font-semibold text-gray-400 uppercase tracking-wider mb-2 px-3 mt-2">
+          <div className="text-[10px] font-bold text-gray-400/80 uppercase tracking-widest mb-2 px-3 mt-1">
             Navigation
           </div>
         )}
@@ -182,22 +182,25 @@ export default function Sidebar({
             <Link
               key={item.href}
               href={item.href}
-              onClick={() => isMobile && setMobileOpen?.(false)} // Close on click (mobile)
-              className={`flex items-center gap-3 px-3 py-2.5 rounded-lg transition-all duration-200 group relative
+              onClick={() => isMobile && setMobileOpen?.(false)}
+              className={`flex items-center gap-3 px-3 py-2.5 rounded-xl transition-all duration-200 group relative
                 ${isActive 
-                  ? "bg-gray-100 text-gray-900 font-semibold" 
-                  : "text-gray-500 hover:bg-gray-50 hover:text-gray-900"
+                  ? "bg-gray-100/80 text-gray-900 font-semibold" 
+                  : "text-gray-500 hover:bg-gray-100/50 hover:text-gray-800"
                 } ${collapsed && !isMobile ? 'justify-center' : ''}`}
               title={collapsed && !isMobile ? item.label : undefined}
             >
+              {/* Left border indicator */}
+              {isActive && (
+                <span className="absolute left-0 top-1/2 -translate-y-1/2 w-[3px] h-5 bg-[#1572A1] rounded-r-full" />
+              )}
               <item.icon 
-                className={`w-[20px] h-[20px] transition-colors flex-shrink-0
-                  ${isActive ? "text-gray-900" : "text-gray-400 group-hover:text-gray-600"}
-                `} 
+                className={`w-[18px] h-[18px] transition-colors duration-200 flex-shrink-0
+                  ${isActive ? "text-[#1572A1]" : "text-gray-400 group-hover:text-gray-600"}`} 
               />
               {(!collapsed || isMobile) && (
                 <>
-                  <span className="whitespace-nowrap overflow-hidden text-[14px] flex-1">{item.label}</span>
+                  <span className="whitespace-nowrap overflow-hidden text-[13px] flex-1">{item.label}</span>
                   {/* @ts-ignore */}
                   {item.hasDropdown && <ChevronDown className="w-4 h-4 text-gray-400" />}
                 </>
@@ -208,9 +211,9 @@ export default function Sidebar({
       </div>
 
       {/* Bottom Actions */}
-      <div className="p-4 border-t border-gray-50 space-y-1 bg-white">
+      <div className="p-3 border-t border-gray-100/60 bg-transparent">
          {(!collapsed || isMobile) && (
-          <div className="text-[11px] font-semibold text-gray-400 uppercase tracking-wider mb-2 px-3">
+          <div className="text-[10px] font-bold text-gray-400/80 uppercase tracking-widest mb-2 px-3">
             Others
           </div>
         )}
@@ -219,12 +222,12 @@ export default function Sidebar({
             key={item.href}
             href={item.href}
             onClick={() => isMobile && setMobileOpen?.(false)}
-            className={`flex items-center gap-3 px-3 py-2.5 rounded-lg text-gray-500 hover:bg-gray-50 hover:text-gray-900 transition-all duration-200 group
+            className={`flex items-center gap-3 px-3 py-2.5 rounded-xl text-gray-500 hover:bg-gray-100/50 hover:text-gray-800 transition-all duration-200 group
              ${collapsed && !isMobile ? 'justify-center' : ''}`}
             title={collapsed && !isMobile ? item.label : undefined}
           >
-            <item.icon className="w-[20px] h-[20px] text-gray-400 group-hover:text-gray-600 flex-shrink-0" />
-            {(!collapsed || isMobile) && <span className="text-[14px]">{item.label}</span>}
+            <item.icon className="w-[18px] h-[18px] text-gray-400 group-hover:text-gray-600 flex-shrink-0 transition-colors duration-200" />
+            {(!collapsed || isMobile) && <span className="text-[13px]">{item.label}</span>}
           </Link>
         ))}
       </div>

@@ -87,7 +87,7 @@ export const partners = pgTable('partners', {
 export const activityLogs = pgTable('activity_logs', {
   id: serial('id').primaryKey(),
   ngoId: integer('ngo_id').references(() => ngos.id).notNull(),
-  action: text('action').notNull(), 
+  action: text('action').notNull(),
   details: text('details'),
   createdAt: timestamp('created_at').defaultNow().notNull(),
 });
@@ -244,3 +244,15 @@ export const awards = pgTable('awards', {
 });
 
 export type Award = typeof awards.$inferSelect;
+
+export const notifications = pgTable('notifications', {
+  id: serial('id').primaryKey(),
+  userId: integer('user_id'), // User to notify, null if global/admin
+  role: text('role'), // 'admin' if meant for all admins
+  title: text('title').notNull(),
+  message: text('message').notNull(),
+  isRead: boolean('is_read').default(false).notNull(),
+  createdAt: timestamp('created_at').defaultNow().notNull(),
+});
+
+export type Notification = typeof notifications.$inferSelect;

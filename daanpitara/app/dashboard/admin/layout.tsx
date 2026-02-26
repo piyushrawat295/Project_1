@@ -17,13 +17,13 @@ export default function AdminLayout({
       <AdminSidebar />
 
       {/* Main Content Area */}
-      <div className="flex-1 flex flex-col min-h-screen ml-[250px]">
+      <div className="flex-1 flex flex-col min-h-screen ml-[260px]">
         <div className="mt-1">
           <AdminTopHeader />
         </div>
 
-        <main className="flex-1 p-6 md:p-8 overflow-y-auto">
-          <div className="max-w-[1400px] mx-auto w-full space-y-6">
+        <main className="flex-1 px-6 py-6 md:px-8 md:py-6 overflow-y-auto">
+          <div className="max-w-[1400px] mx-auto w-full space-y-6 animate-fade-in-up">
             {children}
           </div>
         </main>

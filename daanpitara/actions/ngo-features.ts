@@ -654,8 +654,19 @@ export async function createDocument(data: any) {
       category: 'compliance',
       url: data.url || '#',
       expiryDate: data.expiryDate ? new Date(data.expiryDate) : null,
-      status: 'verified' // Assuming self-uploaded docs are verified or pending admin review
+      status: 'pending' // Usually pending approval first
     });
+
+    try {
+      const { notifications } = await import('@/lib/schema');
+      await db.insert(notifications).values({
+        role: 'admin',
+        title: "New Document Uploaded",
+        message: `${ngo.name} has uploaded a new document: ${data.name}.`,
+      });
+    } catch (e) {
+      console.error("Failed to insert notification:", e);
+    }
 
     revalidatePath("/dashboard/documents");
     return { success: true };
@@ -720,6 +731,17 @@ export async function submitOnboarding(onboardingData: any, uploadedDocs: any[])
       role: 'ngo',
       organizationName: onboardingData.organizationName
     }).where(eq(users.id, userId));
+
+    try {
+      const { notifications } = await import('@/lib/schema');
+      await db.insert(notifications).values({
+        role: 'admin',
+        title: "New Registration",
+        message: `${onboardingData.organizationName} has completed onboarding.`,
+      });
+    } catch (e) {
+      console.error("Failed to insert notification:", e);
+    }
 
     revalidatePath("/dashboard");
     revalidatePath("/onboarding");
