@@ -1,13 +1,15 @@
 "use client";
 
-import { useState } from "react";
-import { Search, Filter, Download, Eye, CheckCircle, XCircle, Clock, FileText, AlertTriangle } from "lucide-react";
+import React, { useState } from "react";
+import { Search, Filter, Download, Eye, CheckCircle, XCircle, Clock, FileText, ChevronDown, ChevronUp, AlertTriangle, ShieldCheck } from "lucide-react";
 import { updateDocumentStatus } from "@/actions/admin";
 
 export default function DocumentApprovalClient({ initialDocs }: { initialDocs: any[] }) {
   const [documents, setDocuments] = useState(initialDocs);
   const [searchQuery, setSearchQuery] = useState("");
   const [loadingId, setLoadingId] = useState<number | null>(null);
+
+  const [expandedNgoId, setExpandedNgoId] = useState<number | null>(null);
 
   const pendingCount = documents.filter(d => d.status === 'pending').length;
   const approvedCount = documents.filter(d => d.status === 'verified' || d.status === 'approved').length;
@@ -32,9 +34,23 @@ export default function DocumentApprovalClient({ initialDocs }: { initialDocs: a
       setLoadingId(null);
   };
 
-  const filteredDocs = documents.filter(doc => 
-    doc.name.toLowerCase().includes(searchQuery.toLowerCase()) || 
-    (doc.ngoName && doc.ngoName.toLowerCase().includes(searchQuery.toLowerCase()))
+  // Group documents by NGO
+  const groupedDocs = documents.reduce((acc, doc) => {
+      const ngoId = doc.ngoId || 0; // fallback if ngoId somehow missing
+      if (!acc[ngoId]) {
+          acc[ngoId] = {
+              id: ngoId,
+              name: doc.ngoName || 'Unknown NGO',
+              documents: []
+          };
+      }
+      acc[ngoId].documents.push(doc);
+      return acc;
+  }, {} as Record<number, { id: number, name: string, documents: any[] }>);
+
+  // Filter grouped NGOs by search
+  const filteredNGOs = Object.values(groupedDocs).filter((ngo: any) => 
+    ngo.name.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
   return (
@@ -64,7 +80,7 @@ export default function DocumentApprovalClient({ initialDocs }: { initialDocs: a
           <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
           <input
             type="text"
-            placeholder="Search by document name or NGO..."
+            placeholder="Search NGOs..."
             value={searchQuery}
             onChange={e => setSearchQuery(e.target.value)}
             className="w-full pl-11 pr-4 h-11 rounded-xl border border-gray-200 focus:ring-2 focus:ring-blue-100 focus:border-blue-300 outline-none text-sm placeholder:text-gray-400 bg-white transition-all"
@@ -75,105 +91,208 @@ export default function DocumentApprovalClient({ initialDocs }: { initialDocs: a
         </button>
       </div>
 
-      {/* Document Cards */}
-      <div className="space-y-4">
-        {filteredDocs.length === 0 ? (
-             <div className="flex flex-col items-center justify-center py-12 border border-dashed border-gray-200 rounded-2xl bg-gray-50/50 text-gray-400">
-             <FileText className="w-10 h-10 mb-3 opacity-40" />
-             <p className="text-sm font-medium">No documents found</p>
-             <p className="text-[11px] text-gray-300 mt-0.5">Try adjusting your search query</p>
-         </div>
-        ) : filteredDocs.map((doc) => {
-          const isPending = doc.status === 'pending';
-          const isApproved = doc.status === 'verified' || doc.status === 'approved';
-          
-          let statusClasses = "bg-amber-50 text-amber-700 border-amber-100";
-          let StatusIcon = Clock;
-          if (isApproved) {
-              statusClasses = "bg-emerald-50 text-emerald-700 border-emerald-100";
-              StatusIcon = CheckCircle;
-          } else if (doc.status === 'missing' || doc.status === 'rejected') {
-              statusClasses = "bg-red-50 text-red-700 border-red-100";
-              StatusIcon = XCircle;
-          }
+      {/* NGO Group Table */}
+      <div className="bg-white rounded-2xl shadow-sm border border-gray-100/60 overflow-hidden">
+        <div className="overflow-x-auto">
+          <table className="w-full text-left min-w-[700px] border-collapse">
+            <thead>
+              <tr className="border-b border-gray-100 bg-gray-50/50">
+                <th className="text-[11px] font-semibold text-gray-400 uppercase py-4 px-5 tracking-wide w-10"></th>
+                <th className="text-[11px] font-semibold text-gray-400 uppercase py-4 px-5 tracking-wide">NGO Name</th>
+                <th className="text-[11px] font-semibold text-gray-400 uppercase py-4 px-4 tracking-wide text-center">Total Docs</th>
+                <th className="text-[11px] font-semibold text-gray-400 uppercase py-4 px-4 tracking-wide text-center">Pending Review</th>
+                <th className="text-[11px] font-semibold text-gray-400 uppercase py-4 px-4 tracking-wide text-center">Approved</th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-gray-50">
+              {filteredNGOs.length === 0 ? (
+                <tr>
+                  <td colSpan={5} className="py-12">
+                   <div className="flex flex-col items-center justify-center text-gray-400">
+                     <FileText className="w-10 h-10 mb-3 opacity-40" />
+                     <p className="text-sm font-medium">No NGOs found</p>
+                     <p className="text-[11px] text-gray-300 mt-0.5">Try adjusting your search query</p>
+                   </div>
+                 </td>
+               </tr>
+              ) : filteredNGOs.map((ngo: any) => {
+                const totalDocs = ngo.documents.length;
+                const pendingDocs = ngo.documents.filter((d: any) => d.status === 'pending').length;
+                const approvedDocs = ngo.documents.filter((d: any) => d.status === 'verified' || d.status === 'approved').length;
+                const isExpanded = expandedNgoId === ngo.id;
 
-          return (
-          <div key={doc.id} className="bg-white rounded-2xl shadow-sm border border-gray-100/60 overflow-hidden card-hover">
-            {/* Card Content */}
-            <div className="p-5">
-              <div className="flex items-start justify-between gap-4">
-                <div className="flex-1 min-w-0">
-                  <h3 className="text-base font-medium text-gray-900 truncate">{doc.name}</h3>
-                  <div className="flex items-center gap-2 mt-1.5 flex-wrap">
-                    <span className="text-[11px] text-gray-400 flex items-center gap-1">🏢 {doc.ngoName || 'Unknown NGO'}</span>
-                    <span className="text-gray-200">•</span>
-                    <span className="text-[10px] font-semibold px-2 py-0.5 rounded-md bg-blue-50 text-blue-600 border border-blue-100">{doc.category || 'General'}</span>
-                  </div>
-                </div>
-                <span className={`text-[11px] font-bold px-3 py-1.5 rounded-full ${statusClasses} whitespace-nowrap capitalize flex items-center gap-1.5 border`}>
-                  <StatusIcon className="w-3 h-3" /> {doc.status}
-                </span>
-              </div>
+                return (
+                  <React.Fragment key={ngo.id}>
+                    {/* NGO Row */}
+                    <tr 
+                      className={`hover:bg-blue-50/30 transition-colors duration-150 cursor-pointer ${isExpanded ? 'bg-blue-50/10' : ''}`}
+                      onClick={() => setExpandedNgoId(isExpanded ? null : ngo.id)}
+                    >
+                      <td className="py-4 px-5 text-gray-400">
+                         {isExpanded ? <ChevronUp className="w-5 h-5 text-blue-500" /> : <ChevronDown className="w-5 h-5" />}
+                      </td>
+                      <td className="py-4 px-5">
+                          <p className="text-sm font-bold text-gray-800">{ngo.name}</p>
+                      </td>
+                      <td className="py-4 px-4 text-center">
+                          <span className="text-sm font-semibold text-gray-700">{totalDocs}</span>
+                      </td>
+                      <td className="py-4 px-4 text-center">
+                          {pendingDocs > 0 ? (
+                             <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-bold bg-amber-50 text-amber-700 border border-amber-100">
+                               <Clock className="w-3.5 h-3.5" /> {pendingDocs}
+                             </span>
+                          ) : (
+                             <span className="text-sm text-gray-400">-</span>
+                          )}
+                      </td>
+                      <td className="py-4 px-4 text-center">
+                          <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-bold ${approvedDocs > 0 ? 'bg-emerald-50 text-emerald-700 border border-emerald-100' : 'bg-gray-50 text-gray-500'}`}>
+                             {approvedDocs > 0 && <CheckCircle className="w-3.5 h-3.5" />} {approvedDocs}
+                          </span>
+                      </td>
+                    </tr>
 
-              {/* Meta Info */}
-              <div className="flex items-center gap-6 mt-4 text-[11px] text-gray-400 flex-wrap">
-                <span>📅 Submitted: <span className="text-gray-600 font-medium">{new Date(doc.createdAt).toISOString().split('T')[0]}</span></span>
-                <span>📄 Type: <span className="text-gray-600 font-medium uppercase">{doc.type}</span></span>
-                <span>⏰ Expiry: <span className="text-gray-600 font-medium">{doc.expiryDate ? new Date(doc.expiryDate).toISOString().split('T')[0] : 'Lifetime'}</span></span>
-              </div>
-            </div>
+                    {/* Expanded Nested Table */}
+                    {isExpanded && (
+                      <tr>
+                        <td colSpan={5} className="p-0 border-b-2 border-blue-100">
+                          <div className="bg-gray-50/60 p-6 shadow-inner pb-8">
+                             <div className="flex items-center gap-2 mb-4">
+                               <FileText className="w-5 h-5 text-blue-600" />
+                               <h4 className="text-sm font-bold text-gray-800">Documents for {ngo.name}</h4>
+                             </div>
+                             
+                             <div className="bg-white rounded-2xl border border-gray-200 overflow-hidden shadow-sm">
+                                <div className="overflow-x-auto">
+                                    <table className="w-full text-left border-collapse">
+                                        <thead>
+                                            <tr className="border-b border-gray-100 bg-gray-50/50">
+                                                <th className="px-6 py-4 text-xs font-bold text-gray-400 uppercase tracking-widest">Document Details</th>
+                                                <th className="px-6 py-4 text-xs font-bold text-gray-400 uppercase tracking-widest">Status</th>
+                                                <th className="px-6 py-4 text-xs font-bold text-gray-400 uppercase tracking-widest">Submission</th>
+                                                <th className="px-6 py-4 text-xs font-bold text-gray-400 uppercase tracking-widest text-right">Actions</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody className="divide-y divide-gray-100">
+                                            {ngo.documents.map((doc: any) => (
+                                                <tr key={doc.id} className="hover:bg-[#F8FAFC]/80 transition-all group">
+                                                    <td className="px-6 py-5">
+                                                        <div className="flex items-center gap-4">
+                                                            <div className={`w-12 h-12 rounded-xl flex items-center justify-center shrink-0 shadow-sm border transition-transform
+                                                              ${(doc.status === 'verified' || doc.status === 'approved') ? 'bg-green-50 text-green-600 border-green-100' : 
+                                                              doc.status === 'pending' ? 'bg-blue-50 text-blue-500 border-blue-100' : 'bg-red-50 text-red-500 border-red-100'}`}>
+                                                                {doc.name.toLowerCase().includes('certificate') ? <ShieldCheck className="w-6 h-6" /> : <FileText className="w-6 h-6" />}
+                                                            </div>
+                                                            <div className="space-y-1">
+                                                                <div className="font-extrabold text-[#1A1A1A] text-sm tracking-tight">{doc.name}</div>
+                                                                <div className="flex items-center gap-2">
+                                                                  <span className="text-[10px] font-black uppercase tracking-widest text-gray-400 bg-gray-100 px-2 py-0.5 rounded">ID: {doc.id.toString().padStart(4, '0')}</span>
+                                                                  <span className="text-[10px] font-bold text-blue-500 uppercase tracking-tighter">{doc.type || 'Upload'}</span>
+                                                                </div>
+                                                            </div>
+                                                        </div>
+                                                    </td>
+                                                    <td className="px-6 py-5">
+                                                        <StatusBadge status={doc.status} />
+                                                    </td>
+                                                    <td className="px-6 py-5">
+                                                        <div className="text-sm font-bold text-gray-800">
+                                                            {new Date(doc.createdAt).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' })}
+                                                        </div>
+                                                    </td>
+                                                    <td className="px-6 py-5 text-right">
+                                                        <div className="flex items-center justify-end gap-2">
+                                                            {/* Standard Actions */}
+                                                            <button 
+                                                              onClick={() => doc.id && window.open(`/api/documents/${doc.id}`, '_blank')}
+                                                              title="View Document"
+                                                              className="p-2 rounded-lg text-gray-400 hover:text-blue-600 hover:bg-blue-50 transition-colors border border-gray-100 bg-white shadow-sm"
+                                                            >
+                                                               <Eye className="w-4 h-4" />
+                                                            </button>
+                                                            <button 
+                                                              onClick={() => {
+                                                                  if (!doc.id) return;
+                                                                  const link = document.createElement('a');
+                                                                  link.href = `/api/documents/${doc.id}`;
+                                                                  link.download = doc.name;
+                                                                  document.body.appendChild(link);
+                                                                  link.click();
+                                                                  document.body.removeChild(link);
+                                                              }}
+                                                              title="Download Document"
+                                                              className="p-2 rounded-lg text-gray-400 hover:text-blue-600 hover:bg-blue-50 transition-colors border border-gray-100 bg-white shadow-sm"
+                                                            >
+                                                               <Download className="w-4 h-4" />
+                                                            </button>
 
-            {/* Action Bar */}
-            <div className="flex items-center gap-2.5 px-5 pb-5">
-              <button 
-                onClick={() => doc.id && window.open(`/api/documents/${doc.id}`, '_blank')}
-                className="flex-1 flex items-center justify-center gap-2 bg-[#1572A1] text-white text-[13px] font-semibold h-10 rounded-xl hover:bg-[#125e87] transition-all duration-200 btn-press shadow-sm"
-                disabled={!doc.id}
-              >
-                <Eye className="w-4 h-4" /> View Document
-              </button>
-              
-              {isPending && (
-                <>
-                  <button 
-                    onClick={() => handleStatusUpdate(doc.id, 'verified')}
-                    disabled={loadingId === doc.id}
-                    className="flex items-center gap-1.5 text-[13px] text-white bg-emerald-500 px-4 h-10 rounded-xl hover:bg-emerald-600 transition-all duration-200 font-semibold disabled:opacity-50 btn-press shadow-sm"
-                  >
-                    <CheckCircle className="w-4 h-4" /> {loadingId === doc.id ? "…" : "Approve"}
-                  </button>
-                  <button 
-                    onClick={() => {
-                        const reason = prompt("Enter rejection reason:");
-                        if (reason) handleStatusUpdate(doc.id, 'rejected', reason);
-                    }}
-                    disabled={loadingId === doc.id}
-                    className="flex items-center gap-1.5 text-[13px] text-white bg-red-500 px-4 h-10 rounded-xl hover:bg-red-600 transition-all duration-200 font-semibold disabled:opacity-50 btn-press shadow-sm"
-                  >
-                    <XCircle className="w-4 h-4" /> Reject
-                  </button>
-                </>
-              )}
-               <button 
-                     onClick={() => {
-                         if (!doc.id) return;
-                         const link = document.createElement('a');
-                         link.href = `/api/documents/${doc.id}`;
-                         link.download = doc.name;
-                         document.body.appendChild(link);
-                         link.click();
-                         document.body.removeChild(link);
-                     }}
-                     disabled={!doc.id}
-                     className="flex items-center gap-1.5 text-[13px] text-gray-600 border border-gray-200 px-4 h-10 rounded-xl hover:bg-gray-50 transition-all duration-200 disabled:opacity-40 btn-press"
-                   >
-                   <Download className="w-4 h-4" /> Download
-                 </button>
-            </div>
-          </div>
-        );
-        })}
+                                                            {/* Admin Actions */}
+                                                            {doc.status === 'pending' && (
+                                                              <>
+                                                                <div className="w-px h-6 bg-gray-200 mx-1"></div>
+                                                                <button 
+                                                                  onClick={() => handleStatusUpdate(doc.id, 'verified')}
+                                                                  disabled={loadingId === doc.id}
+                                                                  title="Approve"
+                                                                  className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold text-white bg-emerald-500 hover:bg-emerald-600 transition-colors shadow-sm disabled:opacity-50"
+                                                                >
+                                                                  <CheckCircle className="w-3.5 h-3.5" /> {loadingId === doc.id ? "…" : "Approve"}
+                                                                </button>
+                                                                <button 
+                                                                  onClick={() => {
+                                                                      const reason = prompt("Enter rejection reason:");
+                                                                      if (reason) handleStatusUpdate(doc.id, 'rejected', reason);
+                                                                  }}
+                                                                  disabled={loadingId === doc.id}
+                                                                  title="Reject"
+                                                                  className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold text-white bg-red-500 hover:bg-red-600 transition-colors shadow-sm disabled:opacity-50"
+                                                                >
+                                                                  <XCircle className="w-3.5 h-3.5" /> Reject
+                                                                </button>
+                                                              </>
+                                                            )}
+                                                        </div>
+                                                    </td>
+                                                </tr>
+                                            ))}
+                                        </tbody>
+                                    </table>
+                                </div>
+                             </div>
+                          </div>
+                        </td>
+                      </tr>
+                    )}
+                  </React.Fragment>
+                );
+              })}
+            </tbody>
+          </table>
+        </div>
       </div>
     </div>
   );
+}
+
+// Reused exact badge style from User Dashboard
+function StatusBadge({ status }: { status: string }) {
+    const s = status?.toLowerCase() || 'pending';
+    // Remap 'verified' and 'approved' to same green style for admin uniformity
+    const effectiveStatus = (s === 'approved' || s === 'verified') ? 'verified' : s;
+    
+    const configs: any = {
+        verified: "bg-green-100 text-green-700 border-green-200",
+        missing: "bg-red-100 text-red-700 border-red-200",
+        rejected: "bg-red-100 text-red-700 border-red-200",
+        expiring: "bg-orange-100 text-orange-700 border-orange-200",
+        pending: "bg-blue-100 text-blue-700 border-blue-200"
+    };
+
+    return (
+        <div className={`inline-flex items-center px-4 py-1.5 rounded-full text-[10px] font-black uppercase tracking-widest border ${configs[effectiveStatus] || configs.pending}`}>
+            <span className={`w-1.5 h-1.5 rounded-full mr-2 ${effectiveStatus === 'verified' ? 'bg-green-500' : (effectiveStatus === 'missing' || effectiveStatus === 'rejected') ? 'bg-red-500' : 'bg-current animate-pulse'}`}></span>
+            {effectiveStatus}
+        </div>
+    );
 }
