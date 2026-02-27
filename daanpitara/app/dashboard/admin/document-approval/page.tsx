@@ -3,6 +3,8 @@ import DocumentApprovalClient from "@/components/admin/DocumentApprovalClient";
 import { AlertCircle } from "lucide-react";
 import Link from "next/link";
 
+export const dynamic = 'force-dynamic';
+
 export default async function DocumentApprovalPage() {
    const docsRes = await getAdminDocuments();
 

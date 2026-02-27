@@ -1,7 +1,7 @@
 "use server";
 
 import { db } from "@/lib/db";
-import { beneficiaries, projects, teamMembers, ngos, events, campaigns, documents, proposals, csrOpportunities, volunteers, boardMembers, partners, donations, users } from "@/lib/schema";
+import { beneficiaries, projects, teamMembers, ngos, events, campaigns, documents, proposals, csrOpportunities, volunteers, boardMembers, partners, donations, users, notifications } from "@/lib/schema";
 import { eq, desc, and, ilike, or, sql } from "drizzle-orm";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth-options";
@@ -658,7 +658,6 @@ export async function createDocument(data: any) {
     });
 
     try {
-      const { notifications } = await import('@/lib/schema');
       await db.insert(notifications).values({
         role: 'admin',
         title: "New Document Uploaded",
@@ -668,7 +667,7 @@ export async function createDocument(data: any) {
       console.error("Failed to insert notification:", e);
     }
 
-    revalidatePath("/dashboard/documents");
+    revalidatePath("/", "layout");
     return { success: true };
   } catch (error) {
     console.error("Create document error:", error);
@@ -733,7 +732,6 @@ export async function submitOnboarding(onboardingData: any, uploadedDocs: any[])
     }).where(eq(users.id, userId));
 
     try {
-      const { notifications } = await import('@/lib/schema');
       await db.insert(notifications).values({
         role: 'admin',
         title: "New Registration",
@@ -743,8 +741,7 @@ export async function submitOnboarding(onboardingData: any, uploadedDocs: any[])
       console.error("Failed to insert notification:", e);
     }
 
-    revalidatePath("/dashboard");
-    revalidatePath("/onboarding");
+    revalidatePath("/", "layout");
     return { success: true };
 
   } catch (error) {
