@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { verifyNGO } from "@/actions/admin";
 import { Eye, CheckCircle, Loader2 } from "lucide-react";
+import Link from "next/link";
 
 export default function AdminDashboardClient({ ngoId, isVerified }: { ngoId: number, isVerified: boolean }) {
     const [loading, setLoading] = useState(false);
@@ -18,9 +19,9 @@ export default function AdminDashboardClient({ ngoId, isVerified }: { ngoId: num
 
     return (
         <div className="flex items-center gap-1.5">
-            <button className="tooltip-wrap p-2 text-gray-400 hover:text-[#1572A1] hover:bg-blue-50 rounded-lg transition-all duration-150" data-tooltip="View Details">
+            <Link href={`/dashboard/admin/ngo-management/${ngoId}`} className="tooltip-wrap p-2 text-gray-400 hover:text-[#1572A1] hover:bg-blue-50 rounded-lg transition-all duration-150 inline-flex" data-tooltip="View Details">
                 <Eye className="w-4 h-4" />
-            </button>
+            </Link>
             {!isVerified && (
                 <button 
                   onClick={handleVerify}

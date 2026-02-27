@@ -1,7 +1,7 @@
 "use server";
 
 import { db } from "@/lib/db";
-import { users, ngos, projects, documents, activityLogs } from "@/lib/schema";
+import { users, ngos, projects, documents, activityLogs, teamMembers, boardMembers } from "@/lib/schema";
 import { eq, desc, asc, sql } from "drizzle-orm";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth-options";
@@ -274,5 +274,82 @@ export async function deleteNGO(ngoId: number) {
     } catch (err) {
         console.error(err);
         return { error: "Failed to delete NGO. Make sure all children records are deleted first or cascade is enabled." };
+    }
+}
+
+export async function getAdminNGOById(ngoId: number) {
+    const session = await getServerSession(authOptions);
+    if (!session?.user?.id || (session.user as any).role !== 'admin') {
+        return { error: "Unauthorized" };
+    }
+
+    try {
+        const ngoList = await db.select().from(ngos).where(eq(ngos.id, ngoId)).limit(1);
+        if (ngoList.length === 0) return { error: "NGO not found" };
+
+        const n = ngoList[0];
+        const owner = await db.select({ email: users.email, phone: users.phoneNumber }).from(users).where(eq(users.id, n.ownerId)).limit(1);
+        const team = await db.select().from(teamMembers).where(eq(teamMembers.ngoId, ngoId));
+        const board = await db.select().from(boardMembers).where(eq(boardMembers.ngoId, ngoId));
+
+        return {
+            id: n.id,
+            name: n.name,
+            type: n.type || "Trust",
+            panNumber: n.panNumber || "",
+            registrationNumber: n.registrationNumber || "",
+            foundedYear: n.foundedYear || "",
+            teamSize: n.teamSize || "",
+            headquarters: n.headquarters || "",
+            description: n.description || "",
+            focusAreas: (n.focusAreas as string[]) || [],
+            operationalStates: (n.operationalStates as string[]) || [],
+            operationalDistricts: (n.operationalDistricts as string[]) || [],
+            vision: n.vision || "",
+            mission: n.mission || "",
+            objectives: n.objectives || "",
+            lat: n.lat || 0,
+            lng: n.lng || 0,
+            teamMembers: team || [],
+            boardMembers: board || [],
+            status: n.verified ? "Verified" : "Pending",
+            email: owner[0]?.email || "N/A",
+            phone: owner[0]?.phone || "N/A",
+        };
+    } catch (error) {
+        console.error("Error fetching NGO by ID:", error);
+        return { error: "Failed to fetch NGO details" };
+    }
+}
+
+export async function updateAdminNGODetails(ngoId: number, data: any) {
+    const session = await getServerSession(authOptions);
+    if (!session?.user?.id || (session.user as any).role !== 'admin') {
+        return { error: "Unauthorized" };
+    }
+
+    try {
+        await db.update(ngos).set({
+            name: data.name,
+            registrationNumber: data.registrationNumber,
+            panNumber: data.panNumber,
+            headquarters: data.headquarters,
+            updatedAt: new Date(),
+        }).where(eq(ngos.id, ngoId));
+
+        if (data.status) {
+            await db.update(ngos).set({
+                verified: data.status === "Verified",
+                updatedAt: new Date(),
+            }).where(eq(ngos.id, ngoId));
+        }
+
+        revalidatePath(`/dashboard/admin/ngo-management/${ngoId}`);
+        revalidatePath(`/dashboard/admin/ngo-management/${ngoId}/edit`);
+        revalidatePath(`/dashboard/admin/ngo-management`);
+        return { success: true };
+    } catch (error) {
+        console.error("Error updating NGO specifics:", error);
+        return { error: "Failed to update NGO details." };
     }
 }

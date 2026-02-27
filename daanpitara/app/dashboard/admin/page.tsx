@@ -101,9 +101,9 @@ export default async function AdminDashboardPage() {
               <h3 className="text-lg font-medium text-gray-900">Recent Activities</h3>
               <p className="text-[11px] text-gray-400 mt-0.5">Latest platform updates</p>
             </div>
-            <button className="text-xs font-semibold text-[#1572A1] hover:underline">
+            <Link href="/dashboard/admin/reports" className="text-xs font-semibold text-[#1572A1] hover:underline">
               View All
-            </button>
+            </Link>
           </div>
           <div className="space-y-4 flex-1">
              {recentActivities.length === 0 ? (

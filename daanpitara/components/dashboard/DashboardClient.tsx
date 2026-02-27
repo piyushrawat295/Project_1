@@ -69,6 +69,27 @@ export default function DashboardClient({ data }: DashboardClientProps) {
     });
   };
 
+  const handleGenerateReport = () => {
+      const headers = ["Metric", "Value"];
+      const csvData = [
+          ["Health Score", stats.healthScore],
+          ["Total Beneficiaries", stats.totalBeneficiaries],
+          ["Active Projects", stats.activeProjects],
+          ["Funds Utilized", stats.fundsUtilized]
+      ].map(row => row.join(","));
+
+      const csvString = [headers.join(","), ...csvData].join("\n");
+      const blob = new Blob([csvString], { type: 'text/csv;charset=utf-8;' });
+      const link = document.createElement("a");
+      const url = URL.createObjectURL(blob);
+      link.setAttribute("href", url);
+      link.setAttribute("download", `ngo_report_${new Date().toISOString().split('T')[0]}.csv`);
+      link.style.visibility = 'hidden';
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+  };
+
   return (
     <div className="space-y-8">
       {/* Header Section */}
@@ -203,7 +224,7 @@ export default function DashboardClient({ data }: DashboardClientProps) {
          <Link href="/dashboard/documents" className="flex items-center justify-center gap-2 bg-white border border-gray-200 p-4 rounded-xl text-gray-700 font-medium hover:bg-gray-50 transition-colors shadow-sm">
             <UploadCloud className="w-5 h-5 text-gray-400" /> Upload Documents
          </Link>
-         <button className="flex items-center justify-center gap-2 bg-white border border-gray-200 p-4 rounded-xl text-gray-700 font-medium hover:bg-gray-50 transition-colors shadow-sm">
+         <button onClick={handleGenerateReport} className="flex items-center justify-center gap-2 bg-white border border-gray-200 p-4 rounded-xl text-gray-700 font-medium hover:bg-gray-50 transition-colors shadow-sm btn-press">
             <FileText className="w-5 h-5 text-gray-400" /> Generate Report
          </button>
       </div>
@@ -289,9 +310,9 @@ export default function DashboardClient({ data }: DashboardClientProps) {
             <div className="bg-white rounded-2xl p-6 shadow-sm border border-gray-100">
                <div className="flex justify-between items-center mb-6">
                   <h3 className="text-lg font-bold text-gray-900">Latest Impact Summary</h3>
-                  <button className="text-sm text-blue-600 font-medium flex items-center gap-1">
-                     View Report <ChevronDown className="w-4 h-4" />
-                  </button>
+                  <Link href="/dashboard/impact" className="text-sm text-blue-600 font-medium flex items-center gap-1 hover:underline">
+                     View Report <ChevronRight className="w-4 h-4" />
+                  </Link>
                </div>
                <div className="space-y-4">
                   <div className="bg-blue-50 p-4 rounded-xl border-l-4 border-blue-500">
@@ -331,12 +352,12 @@ export default function DashboardClient({ data }: DashboardClientProps) {
                   )}
                   
                   <div className="flex gap-2 mt-4">
-                     <button className="flex-1 bg-[#0ea5e9] text-white py-2 rounded-lg text-sm font-medium hover:bg-sky-600 transition-colors">
+                     <Link href="/dashboard/events" className="flex-1 text-center bg-[#0ea5e9] text-white py-2 rounded-lg text-sm font-medium hover:bg-sky-600 transition-colors btn-press">
                         Add Event
-                     </button>
-                     <button className="flex-1 border border-gray-200 text-gray-600 py-2 rounded-lg text-sm font-medium hover:bg-gray-50 transition-colors">
+                     </Link>
+                     <Link href="/dashboard/events" className="flex-1 text-center border border-gray-200 text-gray-600 py-2 rounded-lg text-sm font-medium hover:bg-gray-50 transition-colors btn-press">
                         View Calendar
-                     </button>
+                     </Link>
                   </div>
                </div>
             </div>
@@ -369,9 +390,9 @@ export default function DashboardClient({ data }: DashboardClientProps) {
                      <ChevronRight className="w-4 h-4 text-gray-400" />
                   </div>
 
-                  <button className="w-full bg-[#0ea5e9] text-white py-3 rounded-lg text-sm font-medium hover:bg-sky-600 transition-colors mt-2 flex items-center justify-center gap-2">
+                  <Link href="/dashboard/documents" className="w-full bg-[#0ea5e9] text-white py-3 rounded-lg text-sm font-medium hover:bg-sky-600 transition-colors mt-2 flex items-center justify-center gap-2 btn-press shadow-sm">
                      <UploadCloud className="w-4 h-4" /> Upload More Docs
-                  </button>
+                  </Link>
                </div>
             </div>
 

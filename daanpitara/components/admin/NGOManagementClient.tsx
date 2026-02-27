@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { Search, Filter, Eye, Pencil, Trash2, Download, X, AlertTriangle, Building2 } from "lucide-react";
 import { deleteNGO, verifyNGO } from "@/actions/admin";
+import Link from "next/link";
 
 export default function NGOManagementClient({ initialNgos }: { initialNgos: any[] }) {
   const [ngos, setNgos] = useState(initialNgos);
@@ -52,6 +53,31 @@ export default function NGOManagementClient({ initialNgos }: { initialNgos: any[
       setLoadingId(null);
   };
 
+    const handleExport = () => {
+        const headers = ["ID", "Name", "Registration", "Location", "Status", "Projects", "Funds", "Last Active"];
+        const csvData = filteredNgos.map(ngo => [
+            ngo.id,
+            `"${ngo.name}"`,
+            `"${ngo.reg}"`,
+            `"${ngo.location}"`,
+            ngo.status,
+            ngo.projects,
+            `"${ngo.funds}"`,
+            `"${ngo.lastActive}"`
+        ].join(","));
+
+        const csvString = [headers.join(","), ...csvData].join("\n");
+        const blob = new Blob([csvString], { type: 'text/csv;charset=utf-8;' });
+        const link = document.createElement("a");
+        const url = URL.createObjectURL(blob);
+        link.setAttribute("href", url);
+        link.setAttribute("download", `ngo_export_${new Date().toISOString().split('T')[0]}.csv`);
+        link.style.visibility = 'hidden';
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+    };
+
   return (
     <>
     <div className="space-y-6">
@@ -61,7 +87,10 @@ export default function NGOManagementClient({ initialNgos }: { initialNgos: any[
           <h2 className="text-2xl font-semibold text-gray-900">NGO Management</h2>
           <p className="text-sm text-gray-400 mt-1">View and manage all registered NGOs</p>
         </div>
-        <button className="flex items-center gap-2 bg-[#1572A1] text-white text-[13px] font-semibold px-5 py-2.5 rounded-xl hover:bg-[#125e87] transition-all duration-200 btn-press shadow-sm">
+        <button 
+          onClick={handleExport}
+          className="flex items-center gap-2 bg-[#1572A1] text-white text-[13px] font-semibold px-5 py-2.5 rounded-xl hover:bg-[#125e87] transition-all duration-200 btn-press shadow-sm"
+        >
           <Download className="w-4 h-4" /> Export Data
         </button>
       </div>
@@ -162,12 +191,12 @@ export default function NGOManagementClient({ initialNgos }: { initialNgos: any[
                 <td className="py-4 px-4 text-[11px] text-gray-400">{ngo.lastActive}</td>
                 <td className="py-4 px-4">
                   <div className="flex items-center gap-1">
-                    <button className="tooltip-wrap p-2 text-gray-400 hover:text-[#1572A1] hover:bg-blue-50 rounded-lg transition-all duration-150" data-tooltip="View details">
+                    <Link href={`/dashboard/admin/ngo-management/${ngo.id}`} className="tooltip-wrap p-2 text-gray-400 hover:text-[#1572A1] hover:bg-blue-50 rounded-lg transition-all duration-150 inline-flex" data-tooltip="View details">
                       <Eye className="w-4 h-4" />
-                    </button>
-                    <button className="tooltip-wrap p-2 text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-all duration-150" data-tooltip="Edit">
+                    </Link>
+                    <Link href={`/dashboard/admin/ngo-management/${ngo.id}/edit`} className="tooltip-wrap p-2 text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-all duration-150 inline-flex" data-tooltip="Edit">
                       <Pencil className="w-4 h-4" />
-                    </button>
+                    </Link>
                     <button 
                         onClick={() => setDeleteModal({ open: true, id: ngo.id, name: ngo.name })}
                         disabled={loadingId === ngo.id}
