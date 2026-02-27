@@ -40,23 +40,6 @@ export default function OnboardingPage() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
 
-  useEffect(() => {
-    async function checkStatus() {
-      try {
-        const ngo = await getNGOProfile();
-        // If they have uploaded at least one doc, they can see the dashboard status banner
-        if (ngo && (ngo.verified || (ngo.docCount && ngo.docCount > 0))) {
-          router.push("/dashboard");
-        } else {
-          setIsLoading(false);
-        }
-      } catch (err) {
-        setIsLoading(false);
-      }
-    }
-    checkStatus();
-  }, [router]);
-  
   // Form State
   const [formData, setFormData] = useState({
     organizationName: "",
@@ -72,6 +55,36 @@ export default function OnboardingPage() {
     focusedAreas: [] as string[],
     description: "",
   });
+
+  useEffect(() => {
+    async function checkStatus() {
+      try {
+        const ngo = await getNGOProfile();
+        if (ngo) {
+          setFormData(prev => ({
+            ...prev,
+            organizationName: ngo.name || "",
+            registrationNumber: ngo.registrationNumber || "",
+            establishedYear: ngo.foundedYear ? ngo.foundedYear.toString() : "",
+            address: ngo.headquarters || "",
+            description: ngo.description || "",
+            operationalRegions: ngo.operationalStates ? ngo.operationalStates.join(', ') : "",
+            focusedAreas: (ngo.focusAreas as string[]) || [],
+            // Other fields won't overwrite unless they exist in the schema mapped
+          }));
+          if (ngo.type) {
+            setProfileType(ngo.type as ProfileType);
+            // Optionally, we could jump straight to step 3 if they have profile data,
+            // but for now let's let them review/edit it.
+          }
+        }
+        setIsLoading(false);
+      } catch (err) {
+        setIsLoading(false);
+      }
+    }
+    checkStatus();
+  }, [router]);
 
   const [uploadStep, setUploadStep] = useState(1);
   const [uploadedFiles, setUploadedFiles] = useState<UploadedFile[]>([]);
@@ -434,10 +447,10 @@ function Step3Documents({ uploadStep, setUploadStep, uploadedFiles, setUploadedF
 
   const currentDocs = documents.find(d => d.step === uploadStep)?.docs || documents[0].docs;
 
-  const handleUploadSuccess = (title: string, fileName: string) => {
+  const handleUploadSuccess = (title: string, uploadedData: { name: string, url: string }) => {
     setUploadedFiles((prev: any) => [
       ...prev.filter((f: any) => f.title !== title),
-      { title, fileName, url: "" } // URL will be generated or mocked in action
+      { title, fileName: uploadedData.name, url: uploadedData.url }
     ]);
   };
 
@@ -480,7 +493,7 @@ function Step3Documents({ uploadStep, setUploadStep, uploadedFiles, setUploadedF
             title={doc.title} 
             sub={doc.sub} 
             required 
-            onUpload={(file: File) => handleUploadSuccess(doc.title, file.name)}
+            onUpload={(data: { name: string, url: string }) => handleUploadSuccess(doc.title, data)}
             isUploaded={uploadedFiles.some((f: any) => f.title === doc.title)}
             fileName={uploadedFiles.find((f: any) => f.title === doc.title)?.fileName}
           />
@@ -561,28 +574,58 @@ function InputGroup({ label, name, value, onChange, placeholder, icon: Icon, req
   );
 }
 
-function UploadCard({ title, sub, required, onUpload, isUploaded, fileName }: any) {
+interface UploadCardProps {
+  title: string;
+  sub: string;
+  required?: boolean;
+  onUpload: (data: { name: string, url: string }) => void;
+  isUploaded: boolean;
+  fileName?: string;
+}
+
+function UploadCard({ title, sub, required, onUpload, isUploaded, fileName }: UploadCardProps) {
   const [uploading, setUploading] = useState(false);
   const [progress, setProgress] = useState(0);
 
-  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
-    if (file) {
-      setUploading(true);
-      setProgress(0);
+    if (!file) return;
+
+    setUploading(true);
+    setProgress(20); // Initial progress
+    
+    try {
+      // Simulate some progress for smooth UX while preparing request
+      const progressInterval = setInterval(() => {
+        setProgress(p => (p < 80 ? p + 10 : p));
+      }, 200);
+
+      const formData = new FormData();
+      formData.append('file', file);
       
-      // Simulate Premium Upload Animation
-      const interval = setInterval(() => {
-        setProgress(prev => {
-          if (prev >= 100) {
-            clearInterval(interval);
-            setUploading(false);
-            onUpload(file);
-            return 100;
-          }
-          return prev + 10;
-        });
-      }, 150);
+      const res = await fetch('/api/upload', {
+        method: 'POST',
+        body: formData,
+      });
+      
+      clearInterval(progressInterval);
+      setProgress(100);
+      
+      if (!res.ok) throw new Error("Upload failed");
+      
+      const data = await res.json();
+      
+      if (data.success && data.url) {
+        // Pass the new file object with the URL back up
+        onUpload({ name: file.name, url: data.url });
+      } else {
+         throw new Error(data.error || "Upload failed");
+      }
+    } catch (err) {
+      console.error("Error uploading file:", err);
+      alert("Failed to upload file. Please try again.");
+    } finally {
+      setTimeout(() => setUploading(false), 500);
     }
   };
 

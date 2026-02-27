@@ -126,9 +126,9 @@ export default function DocumentApprovalClient({ initialDocs }: { initialDocs: a
             {/* Action Bar */}
             <div className="flex items-center gap-2.5 px-5 pb-5">
               <button 
-                onClick={() => window.open(doc.url, '_blank')}
+                onClick={() => doc.id && window.open(`/api/documents?id=${doc.id}`, '_blank')}
                 className="flex-1 flex items-center justify-center gap-2 bg-[#1572A1] text-white text-[13px] font-semibold h-10 rounded-xl hover:bg-[#125e87] transition-all duration-200 btn-press shadow-sm"
-                disabled={!doc.url}
+                disabled={!doc.id}
               >
                 <Eye className="w-4 h-4" /> View Document
               </button>
@@ -155,19 +155,20 @@ export default function DocumentApprovalClient({ initialDocs }: { initialDocs: a
                 </>
               )}
                <button 
-                    onClick={() => {
-                        const link = document.createElement('a');
-                        link.href = doc.url;
-                        link.download = doc.name;
-                        document.body.appendChild(link);
-                        link.click();
-                        document.body.removeChild(link);
-                    }}
-                    disabled={!doc.url}
-                    className="flex items-center gap-1.5 text-[13px] text-gray-600 border border-gray-200 px-4 h-10 rounded-xl hover:bg-gray-50 transition-all duration-200 disabled:opacity-40 btn-press"
-                  >
-                  <Download className="w-4 h-4" /> Download
-                </button>
+                     onClick={() => {
+                         if (!doc.id) return;
+                         const link = document.createElement('a');
+                         link.href = `/api/documents?id=${doc.id}`;
+                         link.download = doc.name;
+                         document.body.appendChild(link);
+                         link.click();
+                         document.body.removeChild(link);
+                     }}
+                     disabled={!doc.id}
+                     className="flex items-center gap-1.5 text-[13px] text-gray-600 border border-gray-200 px-4 h-10 rounded-xl hover:bg-gray-50 transition-all duration-200 disabled:opacity-40 btn-press"
+                   >
+                   <Download className="w-4 h-4" /> Download
+                 </button>
             </div>
           </div>
         );

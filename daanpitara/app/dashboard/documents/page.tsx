@@ -172,16 +172,16 @@ export default function DocumentsPage() {
                                           <ActionButton 
                                             icon={Eye} 
                                             label="View" 
-                                            onClick={() => doc.url && window.open(doc.url, '_blank')}
+                                            onClick={() => doc.id && window.open(`/api/documents?id=${doc.id}`, '_blank')}
                                           />
                                           <ActionButton 
                                             icon={Download} 
                                             label="Download" 
                                             secondary 
                                             onClick={() => {
-                                              if (!doc.url) return;
+                                              if (!doc.id) return;
                                               const link = document.createElement('a');
-                                              link.href = doc.url;
+                                              link.href = `/api/documents?id=${doc.id}`;
                                               link.download = doc.name;
                                               document.body.appendChild(link);
                                               link.click();
