@@ -126,7 +126,7 @@ export default function DocumentApprovalClient({ initialDocs }: { initialDocs: a
             {/* Action Bar */}
             <div className="flex items-center gap-2.5 px-5 pb-5">
               <button 
-                onClick={() => doc.id && window.open(`/api/documents?id=${doc.id}`, '_blank')}
+                onClick={() => doc.id && window.open(`/api/documents/${doc.id}`, '_blank')}
                 className="flex-1 flex items-center justify-center gap-2 bg-[#1572A1] text-white text-[13px] font-semibold h-10 rounded-xl hover:bg-[#125e87] transition-all duration-200 btn-press shadow-sm"
                 disabled={!doc.id}
               >
@@ -158,7 +158,7 @@ export default function DocumentApprovalClient({ initialDocs }: { initialDocs: a
                      onClick={() => {
                          if (!doc.id) return;
                          const link = document.createElement('a');
-                         link.href = `/api/documents?id=${doc.id}`;
+                         link.href = `/api/documents/${doc.id}`;
                          link.download = doc.name;
                          document.body.appendChild(link);
                          link.click();

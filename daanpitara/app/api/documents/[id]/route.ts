@@ -13,13 +13,13 @@ const MAX_FILE_SIZE = 10 * 1024 * 1024;
 export async function GET(req: NextRequest) {
   try {
     const session = await getServerSession(authOptions);
-    
+
     if (!session?.user?.id) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    const { searchParams } = new URL(req.url);
-    const documentId = searchParams.get('id');
+    const { pathname } = new URL(req.url);
+    const documentId = pathname.split('/').pop()?.split('?')[0];
 
     if (!documentId) {
       return NextResponse.json({ error: "Document ID required" }, { status: 400 });
@@ -64,14 +64,14 @@ export async function GET(req: NextRequest) {
     }
 
     const filePath = path.join(process.cwd(), 'public', doc.url);
-    
+
     if (!fs.existsSync(filePath)) {
       return NextResponse.json({ error: "File not found on server" }, { status: 404 });
     }
 
     const fileBuffer = fs.readFileSync(filePath);
     const ext = path.extname(doc.url).toLowerCase();
-    
+
     const contentTypes: Record<string, string> = {
       '.pdf': 'application/pdf',
       '.jpg': 'image/jpeg',
