@@ -20,13 +20,13 @@ const MAX_FILE_SIZE = 10 * 1024 * 1024;
 export async function POST(req: NextRequest) {
   try {
     const session = await getServerSession(authOptions);
-    
+
     if (!session?.user?.id) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
     const userRole = (session.user as any).role;
-    
+
     if (userRole !== 'admin' && userRole !== 'ngo' && userRole !== 'user') {
       return NextResponse.json({ error: "Forbidden" }, { status: 403 });
     }
@@ -39,14 +39,23 @@ export async function POST(req: NextRequest) {
     }
 
     if (!ALLOWED_MIME_TYPES.includes(file.type)) {
-      return NextResponse.json({ 
-        error: "Invalid file type. Allowed: PDF, JPG, PNG, DOC, DOCX" 
+      return NextResponse.json({
+        error: "Invalid file type. Allowed: PDF, JPG, PNG, DOC, DOCX"
       }, { status: 400 });
     }
 
-    if (file.size > MAX_FILE_SIZE) {
-      return NextResponse.json({ 
-        error: `File too large. Maximum size is 10MB` 
+    const MAX_PDF_SIZE = 2 * 1024 * 1024; // 2MB restriction for PDFs
+    const MAX_OTHER_SIZE = 10 * 1024 * 1024; // 10MB for other types
+
+    if (file.type === 'application/pdf' && file.size > MAX_PDF_SIZE) {
+      return NextResponse.json({
+        error: `Compressed PDF required. Maximum size is 2MB. Please compress your PDF before uploading.`
+      }, { status: 400 });
+    }
+
+    if (file.type !== 'application/pdf' && file.size > MAX_OTHER_SIZE) {
+      return NextResponse.json({
+        error: `File too large. Maximum size is 10MB`
       }, { status: 400 });
     }
 
@@ -55,8 +64,8 @@ export async function POST(req: NextRequest) {
 
     const originalExt = path.extname(file.name).toLowerCase();
     if (!ALLOWED_EXTENSIONS.includes(originalExt)) {
-      return NextResponse.json({ 
-        error: "Invalid file extension" 
+      return NextResponse.json({
+        error: "Invalid file extension"
       }, { status: 400 });
     }
 
@@ -74,9 +83,9 @@ export async function POST(req: NextRequest) {
 
     const url = `/uploads/${filename}`;
 
-    return NextResponse.json({ 
-      success: true, 
-      url, 
+    return NextResponse.json({
+      success: true,
+      url,
       fileName: file.name,
       fileSize: file.size,
       fileType: file.type

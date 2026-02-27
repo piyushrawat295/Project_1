@@ -236,7 +236,7 @@ export default function RecordsClient({ initialData, initialStats }: { initialDa
                             {/* Mock Upload Field */}
                             <Upload className="w-10 h-10 text-gray-400 mb-2" />
                             <p className="text-sm text-gray-500">Click to upload (Mock)</p>
-                            <p className="text-xs text-gray-400 mt-1">PDF, DOC, JPG, PNG (Max 100MB)</p>
+                            <p className="text-xs text-gray-400 mt-1">PDF (Max 2MB), DOC, JPG, PNG (Max 10MB)</p>
                        </div>
 
                        <div className="flex gap-3 pt-4 border-t">

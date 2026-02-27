@@ -438,11 +438,11 @@ function Step2BasicInfo({ formData, setFormData, toggleFocusedArea }: any) {
 
 function Step3Documents({ uploadStep, setUploadStep, uploadedFiles, setUploadedFiles }: any) {
   const documents = [
-    { step: 1, docs: [{ title: "Registration Certificate", sub: "PDF or JPG, max 5MB" }, { title: "12A Certificate", sub: "PDF or JPG, max 5MB" }] },
-    { step: 2, docs: [{ title: "FCRA Certificate", sub: "PDF or JPG, max 5MB" }, { title: "Board Member List with Aadhar/PAN of Trustees", sub: "PDF or JPG, max 5MB" }] },
-    { step: 3, docs: [{ title: "80G Certificate", sub: "PDF or JPG, max 5MB" }, { title: "PAN Card of Organization", sub: "PDF or JPG, max 5MB" }] },
-    { step: 4, docs: [{ title: "Latest Annual Report", sub: "PDF or JPG, max 5MB" }, { title: "Audited Financials (Last 3 Years)", sub: "PDF or JPG, max 10MB" }] },
-    { step: 5, docs: [{ title: "Trust Deed / Bylaws", sub: "PDF or JPG, max 5MB" }, { title: "Authorization Letter", sub: "PDF or JPG, max 5MB" }] },
+    { step: 1, docs: [{ title: "Registration Certificate", sub: "PDF (max 2MB) or JPG (max 5MB)" }, { title: "12A Certificate", sub: "PDF (max 2MB) or JPG (max 5MB)" }] },
+    { step: 2, docs: [{ title: "FCRA Certificate", sub: "PDF (max 2MB) or JPG (max 5MB)" }, { title: "Board Member List with Aadhar/PAN of Trustees", sub: "PDF (max 2MB) or JPG (max 5MB)" }] },
+    { step: 3, docs: [{ title: "80G Certificate", sub: "PDF (max 2MB) or JPG (max 5MB)" }, { title: "PAN Card of Organization", sub: "PDF (max 2MB) or JPG (max 5MB)" }] },
+    { step: 4, docs: [{ title: "Latest Annual Report", sub: "PDF (max 2MB) or JPG (max 5MB)" }, { title: "Audited Financials (Last 3 Years)", sub: "PDF (max 2MB) or JPG (max 10MB)" }] },
+    { step: 5, docs: [{ title: "Trust Deed / Bylaws", sub: "PDF (max 2MB) or JPG (max 5MB)" }, { title: "Authorization Letter", sub: "PDF (max 2MB) or JPG (max 5MB)" }] },
   ];
 
   const currentDocs = documents.find(d => d.step === uploadStep)?.docs || documents[0].docs;
@@ -591,6 +591,11 @@ function UploadCard({ title, sub, required, onUpload, isUploaded, fileName }: Up
     const file = e.target.files?.[0];
     if (!file) return;
 
+    if (file.type === 'application/pdf' && file.size > 2 * 1024 * 1024) {
+      alert("Please upload a compressed PDF. Maximum size allowed for PDFs is 2MB.");
+      return;
+    }
+
     setUploading(true);
     setProgress(20); // Initial progress
     
@@ -679,7 +684,7 @@ function UploadCard({ title, sub, required, onUpload, isUploaded, fileName }: Up
                 <Upload size={24} />
               </div>
               <p className="text-sm font-medium text-gray-900 mb-1">Drop file here or click to browse</p>
-              <p className="text-xs text-gray-400">PDF, JPG, PNG (max 5MB)</p>
+              <p className="text-xs text-gray-400">PDF (max 2MB), JPG, PNG</p>
             </>
           )}
         </label>
