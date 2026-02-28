@@ -685,6 +685,9 @@ function UploadCard({ title, sub, required, onUpload, isUploaded, fileName }: Up
               </div>
               <p className="text-sm font-medium text-gray-900 mb-1">Drop file here or click to browse</p>
               <p className="text-xs text-gray-400">PDF (max 2MB), JPG, PNG</p>
+              <p className="text-[11px] text-amber-600 mt-2 font-medium text-center bg-amber-50 px-3 py-1 rounded-full border border-amber-100">
+                Please upload a valid, professional PDF document
+              </p>
             </>
           )}
         </label>
