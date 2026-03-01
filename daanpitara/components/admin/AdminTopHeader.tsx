@@ -1,12 +1,12 @@
 "use client";
 
 import { useSession, signOut } from "next-auth/react";
-import { Bell, Settings, ChevronDown, LogOut, Trash2 } from "lucide-react";
+import { Bell, Settings, ChevronDown, LogOut, Trash2, Menu } from "lucide-react";
 import { useState, useRef, useEffect, useCallback } from "react";
 import { getNotifications, markNotificationsAsRead } from "@/actions/notifications";
 import { Notification } from "@/lib/schema";
 
-export default function AdminTopHeader() {
+export default function AdminTopHeader({ onMenuClick }: { onMenuClick?: () => void }) {
   const { data: session } = useSession();
   const [isProfileOpen, setIsProfileOpen] = useState(false);
   const [notifications, setNotifications] = useState<Notification[]>([]);
@@ -72,13 +72,24 @@ export default function AdminTopHeader() {
   };
 
   return (
-    <header className="h-16 bg-white border-b border-gray-100/80 flex items-center justify-between px-8 sticky top-0 z-40">
-      {/* Left: Welcome */}
-      <div>
-        <h1 className="text-lg font-semibold text-gray-800">
-          Welcome, <span className="text-[#1572A1]">Admin</span>
-        </h1>
-        <p className="text-[11px] text-gray-400 -mt-0.5">Platform Administrator</p>
+    <header className="h-16 bg-white border-b border-gray-100/80 flex items-center justify-between px-4 md:px-8 sticky top-0 z-40">
+      {/* Left: Hamburger & Welcome */}
+      <div className="flex items-center gap-4">
+        <button 
+          onClick={onMenuClick}
+          className="md:hidden p-2 -ml-2 text-gray-500 hover:bg-gray-100 rounded-xl transition-colors"
+        >
+          <Menu className="w-5 h-5" />
+        </button>
+        <div>
+          <h1 className="text-lg font-semibold text-gray-800 hidden sm:block">
+            Welcome, <span className="text-[#1572A1]">Admin</span>
+          </h1>
+          <p className="text-[11px] text-gray-400 -mt-0.5 hidden sm:block">Platform Administrator</p>
+          <h1 className="text-lg font-semibold text-gray-800 sm:hidden">
+            Admin
+          </h1>
+        </div>
       </div>
 
       {/* Right: Icons & Profile */}

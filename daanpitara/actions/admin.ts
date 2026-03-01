@@ -1,7 +1,7 @@
 "use server";
 
 import { db } from "@/lib/db";
-import { users, ngos, projects, documents, activityLogs, teamMembers, boardMembers } from "@/lib/schema";
+import { users, ngos, projects, documents, activityLogs, teamMembers, boardMembers, beneficiaries } from "@/lib/schema";
 import { eq, desc, asc, sql } from "drizzle-orm";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth-options";
@@ -80,17 +80,34 @@ export async function getAdminDashboardData() {
 
         // Top NGOs (mock scoring for now based on details + verification)
         const nList = await db.select().from(ngos).where(eq(ngos.verified, true)).limit(5);
-        const topNGOs = nList.map((n, idx) => ({
-            id: n.id,
-            initials: n.name.substring(0, 2).toUpperCase(),
-            name: n.name,
-            sub: n.verified ? "Verified NGO" : "Unverified",
-            score: Math.floor(Math.random() * 20) + 80, // Fake score
-            projects: 0,
-            beneficiaries: "0",
-            funds: "₹0",
-            rating: 4.5 + (Math.random() * 0.5),
-            color: ["bg-[#1572A1]", "bg-green-600", "bg-teal-600", "bg-amber-600"][idx % 4]
+        const topNGOs = await Promise.all(nList.map(async (n, idx) => {
+
+            // Fetch dynamically
+            const ngoProjects = await db.select().from(projects).where(eq(projects.ngoId, n.id));
+            const ngoBeneficiaries = await db.select({ count: sql<number>`count(*)` }).from(beneficiaries).where(eq(beneficiaries.ngoId, n.id));
+
+            const totalNGOFunds = ngoProjects.reduce((sum, p) => sum + (p.raisedAmount || 0), 0);
+            let formattedFunds = `₹${totalNGOFunds}`;
+            if (totalNGOFunds >= 10000000) {
+                formattedFunds = `₹${(totalNGOFunds / 10000000).toFixed(1)}Cr`;
+            } else if (totalNGOFunds >= 100000) {
+                formattedFunds = `₹${(totalNGOFunds / 100000).toFixed(1)}L`;
+            } else {
+                formattedFunds = `₹${totalNGOFunds.toLocaleString('en-IN')}`;
+            }
+
+            return {
+                id: n.id,
+                initials: n.name.substring(0, 2).toUpperCase(),
+                name: n.name,
+                sub: n.verified ? "Verified NGO" : "Unverified",
+                score: 80 + (ngoProjects.length * 5) + (totalNGOFunds > 100000 ? 10 : 0), // Base score + bonuses
+                projects: ngoProjects.length,
+                beneficiaries: (ngoBeneficiaries[0]?.count || 0).toString(),
+                funds: formattedFunds,
+                rating: 4.5 + (Math.random() * 0.5),
+                color: ["bg-[#1572A1]", "bg-green-600", "bg-teal-600", "bg-amber-600"][idx % 4]
+            };
         }));
 
         const summaryCards = [
@@ -147,13 +164,20 @@ export async function getAdminDocuments() {
             expiryDate: documents.expiryDate,
             createdAt: documents.createdAt,
             ngoName: ngos.name,
-            ngoId: ngos.id
+            ngoId: documents.ngoId // Use document's ngoId, not the joined one which might be null
         })
             .from(documents)
             .leftJoin(ngos, eq(documents.ngoId, ngos.id))
             .orderBy(desc(documents.createdAt));
 
-        return { data: docs };
+        // Map over the results to ensure fallback values for missing NGO references
+        const mappedDocs = docs.map(d => ({
+            ...d,
+            ngoName: d.ngoName || `NGO ID: ${d.ngoId || 'Unknown'}`,
+            ngoId: d.ngoId || 0
+        }));
+
+        return { data: mappedDocs };
     } catch (error) {
         console.error("Error fetching admin documents:", error);
         return { error: "Failed to fetch documents." };

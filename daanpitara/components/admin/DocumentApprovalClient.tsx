@@ -37,21 +37,29 @@ export default function DocumentApprovalClient({ initialDocs }: { initialDocs: a
   // Group documents by NGO
   const groupedDocs = documents.reduce((acc, doc) => {
       const ngoId = doc.ngoId || 0; // fallback if ngoId somehow missing
+      
+      // Parse the date properly, default to 0 if missing
+      const docTime = doc.createdAt ? new Date(doc.createdAt).getTime() : 0;
+
       if (!acc[ngoId]) {
           acc[ngoId] = {
               id: ngoId,
               name: doc.ngoName || 'Unknown NGO',
+              lastDocTime: docTime,
               documents: []
           };
+      } else {
+          // Track the most recent document time
+          acc[ngoId].lastDocTime = Math.max(acc[ngoId].lastDocTime || 0, docTime);
       }
       acc[ngoId].documents.push(doc);
       return acc;
-  }, {} as Record<number, { id: number, name: string, documents: any[] }>);
+  }, {} as Record<number, { id: number, name: string, lastDocTime: number, documents: any[] }>);
 
-  // Filter grouped NGOs by search
-  const filteredNGOs = Object.values(groupedDocs).filter((ngo: any) => 
-    ngo.name.toLowerCase().includes(searchQuery.toLowerCase())
-  );
+  // Filter grouped NGOs by search and sort by most recent document descending
+  const filteredNGOs = Object.values(groupedDocs)
+    .filter((ngo: any) => ngo.name.toLowerCase().includes(searchQuery.toLowerCase()))
+    .sort((a: any, b: any) => (b.lastDocTime || 0) - (a.lastDocTime || 0));
 
   return (
     <div className="space-y-6">
@@ -215,7 +223,7 @@ export default function DocumentApprovalClient({ initialDocs }: { initialDocs: a
                                                               onClick={() => {
                                                                   if (!doc.id) return;
                                                                   const link = document.createElement('a');
-                                                                  link.href = `/api/documents/${doc.id}`;
+                                                                  link.href = `/api/documents/${doc.id}?download=true`;
                                                                   link.download = doc.name;
                                                                   document.body.appendChild(link);
                                                                   link.click();

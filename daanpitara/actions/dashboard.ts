@@ -277,6 +277,24 @@ export async function getDashboardData() {
       fundsUtilized
     };
 
+    // Prepare dynamic recent documents
+    const recentDocuments = await db.select().from(documents)
+      .where(eq(documents.ngoId, ngo.id))
+      .orderBy(desc(documents.createdAt))
+      .limit(3);
+
+    // Mock dynamic achievements based on actual data health
+    const achievements = [];
+    if (docStats.verified >= 3) {
+      achievements.push({ title: "Trust Verified Badge", year: new Date().getFullYear().toString() });
+    }
+    if (fundsUtilized > 100000) {
+      achievements.push({ title: "High Impact Partner", year: "CSR Certified" });
+    }
+    if (totalBeneficiaries > 500) {
+      achievements.push({ title: "Community Champion", year: "500+ Lives Touched" });
+    }
+
     return {
       ngo,
       userName: session.user.name || "Admin",
@@ -291,6 +309,8 @@ export async function getDashboardData() {
       insights,
       projects: projectList,
       events: eventList,
+      recentDocuments,
+      achievements,
       stats,
       userRole: (session.user as any).role
     };

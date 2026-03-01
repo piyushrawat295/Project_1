@@ -5,7 +5,8 @@ import { db } from "@/lib/db";
 import { documents, ngos } from "@/lib/schema";
 import { eq, and } from "drizzle-orm";
 import path from "path";
-import fs from "fs";
+import { GetObjectCommand } from "@aws-sdk/client-s3";
+import s3Client from "@/lib/s3";
 
 const ALLOWED_EXTENSIONS = ['.pdf', '.jpg', '.jpeg', '.png', '.doc', '.docx'];
 const MAX_FILE_SIZE = 10 * 1024 * 1024;
@@ -63,36 +64,49 @@ export async function GET(req: NextRequest) {
       return NextResponse.json({ error: "Document file not available" }, { status: 404 });
     }
 
-    const filePath = path.join(process.cwd(), 'public', doc.url);
+    const objectKey = doc.url.startsWith('/') ? doc.url.substring(1) : doc.url;
 
-    if (!fs.existsSync(filePath)) {
-      return NextResponse.json({ error: "File not found on server" }, { status: 404 });
+    try {
+      const getObjectParams = {
+        Bucket: process.env.AWS_S3_BUCKET_NAME,
+        Key: objectKey,
+      };
+
+      const command = new GetObjectCommand(getObjectParams);
+      const s3Response = await s3Client.send(command);
+
+      const ext = path.extname(doc.url).toLowerCase();
+      const contentTypes: Record<string, string> = {
+        '.pdf': 'application/pdf',
+        '.jpg': 'image/jpeg',
+        '.jpeg': 'image/jpeg',
+        '.png': 'image/png',
+        '.doc': 'application/msword',
+        '.docx': 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+      };
+      const contentType = contentTypes[ext] || 'application/octet-stream';
+      const filename = doc.name.replace(/[^a-zA-Z0-9.-]/g, '_') + ext;
+
+      // Type cast the body to work with NextResponse
+      const stream = s3Response.Body as unknown as ReadableStream;
+
+      const isDownload = req.nextUrl.searchParams.get('download') === 'true';
+      const dispositionType = isDownload ? 'attachment' : 'inline';
+
+      return new NextResponse(stream, {
+        headers: {
+          'Content-Type': contentType,
+          'Content-Disposition': `${dispositionType}; filename="${filename}"`,
+          'Content-Length': s3Response.ContentLength?.toString() || '',
+          'Cache-Control': 'private, no-cache, no-store',
+        },
+      });
+    } catch (s3Error: any) {
+      if (s3Error.name === 'NoSuchKey') {
+        return NextResponse.json({ error: "File not found on server" }, { status: 404 });
+      }
+      throw s3Error;
     }
-
-    const fileBuffer = fs.readFileSync(filePath);
-    const ext = path.extname(doc.url).toLowerCase();
-
-    const contentTypes: Record<string, string> = {
-      '.pdf': 'application/pdf',
-      '.jpg': 'image/jpeg',
-      '.jpeg': 'image/jpeg',
-      '.png': 'image/png',
-      '.doc': 'application/msword',
-      '.docx': 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
-    };
-
-    const contentType = contentTypes[ext] || 'application/octet-stream';
-
-    const filename = doc.name.replace(/[^a-zA-Z0-9.-]/g, '_') + ext;
-
-    return new NextResponse(fileBuffer, {
-      headers: {
-        'Content-Type': contentType,
-        'Content-Disposition': `attachment; filename="${filename}"`,
-        'Content-Length': fileBuffer.length.toString(),
-        'Cache-Control': 'private, no-cache, no-store',
-      },
-    });
 
   } catch (error) {
     console.error("Document download error:", error);

@@ -281,15 +281,15 @@ export default function DashboardClient({ data }: DashboardClientProps) {
                      </div>
                      <div className="flex items-center gap-3 text-gray-700">
                         <span className="w-2 h-2 rounded-full bg-yellow-400 ml-1.5 mr-1.5"></span>
-                        <span className="font-semibold">780</span> Children
+                        <span className="font-semibold">{Math.floor(stats.totalBeneficiaries * 0.45).toLocaleString()}</span> Children
                      </div>
                      <div className="flex items-center gap-3 text-gray-700">
                          <span className="w-2 h-2 rounded-full bg-orange-400 ml-1.5 mr-1.5"></span>
-                        <span className="font-semibold">320</span> Women
+                        <span className="font-semibold">{Math.floor(stats.totalBeneficiaries * 0.35).toLocaleString()}</span> Women
                      </div>
                      <div className="flex items-center gap-3 text-gray-700">
                          <span className="w-2 h-2 rounded-full bg-green-400 ml-1.5 mr-1.5"></span>
-                        <span className="font-semibold">150</span> Elderly
+                        <span className="font-semibold">{Math.floor(stats.totalBeneficiaries * 0.20).toLocaleString()}</span> Elderly
                      </div>
                      <Link href="/dashboard/beneficiaries" className="text-blue-600 font-medium text-sm mt-4 inline-block">
                         View All Beneficiaries
@@ -310,21 +310,20 @@ export default function DashboardClient({ data }: DashboardClientProps) {
             <div className="bg-white rounded-2xl p-6 shadow-sm border border-gray-100">
                <div className="flex justify-between items-center mb-6">
                   <h3 className="text-lg font-bold text-gray-900">Latest Impact Summary</h3>
-                  <Link href="/dashboard/impact" className="text-sm text-blue-600 font-medium flex items-center gap-1 hover:underline">
-                     View Report <ChevronRight className="w-4 h-4" />
+                  <Link href="/dashboard/projects" className="text-sm text-blue-600 font-medium flex items-center gap-1 hover:underline">
+                     View All Projects <ChevronRight className="w-4 h-4" />
                   </Link>
                </div>
                <div className="space-y-4">
-                  <div className="bg-blue-50 p-4 rounded-xl border-l-4 border-blue-500">
-                     <p className="text-sm text-gray-800">
-                        <span className="font-bold text-blue-700">Education Project:</span> 200 Students Improved in Learning Levels
-                     </p>
-                  </div>
-                  <div className="bg-green-50 p-4 rounded-xl border-l-4 border-green-500">
-                     <p className="text-sm text-gray-800">
-                        <span className="font-bold text-green-700">Health Camp:</span> 500 People Received Medical Aid
-                     </p>
-                  </div>
+                  {projects.length > 0 ? projects.slice(0, 2).map((project, idx) => (
+                      <div key={idx} className={`${idx % 2 === 0 ? "bg-blue-50 border-blue-500" : "bg-green-50 border-green-500"} p-4 rounded-xl border-l-4`}>
+                         <p className="text-sm text-gray-800">
+                            <span className={`font-bold ${idx % 2 === 0 ? "text-blue-700" : "text-green-700"}`}>{project.title}:</span> {project.description?.substring(0, 80) || "Making a positive impact in the community."}...
+                         </p>
+                      </div>
+                  )) : (
+                      <div className="text-center py-4 text-gray-500">Add a project to see your impact summary.</div>
+                  )}
                </div>
             </div>
 
@@ -352,7 +351,7 @@ export default function DashboardClient({ data }: DashboardClientProps) {
                   )}
                   
                   <div className="flex gap-2 mt-4">
-                     <Link href="/dashboard/events" className="flex-1 text-center bg-[#0ea5e9] text-white py-2 rounded-lg text-sm font-medium hover:bg-sky-600 transition-colors btn-press">
+                     <Link href="/dashboard/events/new" className="flex-1 text-center bg-[#0ea5e9] text-white py-2 rounded-lg text-sm font-medium hover:bg-sky-600 transition-colors btn-press">
                         Add Event
                      </Link>
                      <Link href="/dashboard/events" className="flex-1 text-center border border-gray-200 text-gray-600 py-2 rounded-lg text-sm font-medium hover:bg-gray-50 transition-colors btn-press">
@@ -364,34 +363,26 @@ export default function DashboardClient({ data }: DashboardClientProps) {
 
             {/* Documents & Compliance */}
             <div className="bg-white rounded-2xl p-6 shadow-sm border border-gray-100">
-               <h3 className="text-lg font-bold text-gray-900 mb-6">Documents & Compliance</h3>
+               <div className="flex justify-between items-center mb-6">
+                   <h3 className="text-lg font-bold text-gray-900">Recent Documents</h3>
+               </div>
                <div className="space-y-4">
-                  <div className="flex items-center justify-between p-3 bg-gray-50 rounded-xl">
-                     <div className="flex items-center gap-3">
-                        <CheckCircle2 className="w-5 h-5 text-green-500" />
-                        <span className="text-sm font-medium text-gray-700">80G Certificate</span>
-                     </div>
-                     <ChevronRight className="w-4 h-4 text-gray-400" />
-                  </div>
-                  
-                  <div className="flex items-center justify-between p-3 bg-gray-50 rounded-xl">
-                     <div className="flex items-center gap-3">
-                        <FileText className="w-5 h-5 text-gray-400" />
-                        <span className="text-sm font-medium text-gray-700">CSR-1 Form</span>
-                     </div>
-                     <span className="text-[10px] bg-red-100 text-red-600 font-bold px-2 py-0.5 rounded">Expires Soon!</span>
-                  </div>
-
-                   <div className="flex items-center justify-between p-3 bg-gray-50 rounded-xl">
-                     <div className="flex items-center gap-3">
-                        <FileText className="w-5 h-5 text-gray-400" />
-                        <span className="text-sm font-medium text-gray-700">Audit Report</span>
-                     </div>
-                     <ChevronRight className="w-4 h-4 text-gray-400" />
-                  </div>
+                  {(data as any).recentDocuments?.length > 0 ? (data as any).recentDocuments.slice(0, 3).map((doc: any, i: number) => (
+                      <div key={i} className="flex items-center justify-between p-3 bg-gray-50 rounded-xl hover:bg-gray-100 transition-colors cursor-pointer" onClick={() => window.open(`/api/documents/${doc.id}`, '_blank')}>
+                         <div className="flex items-center gap-3">
+                            {doc.status === 'verified' ? <CheckCircle2 className="w-5 h-5 text-green-500" /> : 
+                             doc.status === 'pending' ? <Clock className="w-5 h-5 text-blue-500" /> : 
+                             <AlertCircle className="w-5 h-5 text-red-500" />}
+                            <span className="text-sm font-medium text-gray-700 truncate max-w-[150px]">{doc.name}</span>
+                         </div>
+                         <ChevronRight className="w-4 h-4 text-gray-400" />
+                      </div>
+                  )) : (
+                      <div className="text-center py-4 text-xs text-gray-400">No documents uploaded yet.</div>
+                  )}
 
                   <Link href="/dashboard/documents" className="w-full bg-[#0ea5e9] text-white py-3 rounded-lg text-sm font-medium hover:bg-sky-600 transition-colors mt-2 flex items-center justify-center gap-2 btn-press shadow-sm">
-                     <UploadCloud className="w-4 h-4" /> Upload More Docs
+                     <UploadCloud className="w-4 h-4" /> Go to Documents
                   </Link>
                </div>
             </div>
@@ -399,15 +390,21 @@ export default function DashboardClient({ data }: DashboardClientProps) {
             {/* Achievements */}
             <div className="bg-white rounded-2xl p-6 shadow-sm border border-gray-100">
                <h3 className="text-lg font-bold text-gray-900 mb-6">Our Achievements</h3>
-               <div className="bg-yellow-50 rounded-xl p-4 flex items-center gap-4">
-                  <div className="w-12 h-12 bg-white rounded-full flex items-center justify-center shadow-sm text-yellow-500">
-                     <Trophy className="w-6 h-6" />
-                  </div>
-                  <div>
-                     <h4 className="font-bold text-gray-900 text-sm">Best NGO Award 2023</h4>
-                     <p className="text-xs text-gray-500">Winner</p>
-                  </div>
-               </div>
+               
+               {(data as any).achievements?.length > 0 ? (data as any).achievements.map((ach: any, i: number) => (
+                   <div key={i} className="bg-yellow-50 rounded-xl p-4 flex items-center gap-4 mb-3">
+                      <div className="w-12 h-12 bg-white rounded-full flex items-center justify-center shadow-sm text-yellow-500 shrink-0">
+                         <Trophy className="w-6 h-6" />
+                      </div>
+                      <div>
+                         <h4 className="font-bold text-gray-900 text-sm">{ach.title}</h4>
+                         <p className="text-xs text-gray-500">{ach.year || 'Winner'}</p>
+                      </div>
+                   </div>
+               )) : (
+                   <div className="text-center py-6 text-gray-400 text-sm">No awards registered yet.</div>
+               )}
+               <Link href="/dashboard/awards" className="text-xs text-blue-600 hover:underline mt-2 inline-block">Manage Awards</Link>
             </div>
 
          </div>

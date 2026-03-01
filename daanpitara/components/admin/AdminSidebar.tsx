@@ -30,20 +30,35 @@ const adminNavItems = [
   { icon: Settings, label: "Platform Settings", href: "/dashboard/admin/settings" },
 ];
 
-export default function AdminSidebar() {
+export default function AdminSidebar({
+  mobileOpen = false,
+  setMobileOpen,
+}: {
+  mobileOpen?: boolean;
+  setMobileOpen?: (open: boolean) => void;
+}) {
   const pathname = usePathname();
 
   return (
-    <aside className="fixed left-0 top-0 h-screen w-[260px] bg-[#FAFBFC] border-r border-gray-100/80 flex flex-col z-50 font-sans shadow-[1px_0_8px_rgba(0,0,0,0.03)]">
+    <aside 
+      className={`fixed left-0 top-0 h-screen w-[260px] bg-[#FAFBFC] border-r border-gray-100/80 flex flex-col z-50 font-sans shadow-[1px_0_8px_rgba(0,0,0,0.03)] transform transition-transform duration-300 ease-in-out md:translate-x-0
+        ${mobileOpen ? "translate-x-0" : "-translate-x-full"}`}
+    >
       {/* Logo */}
-      <div className="px-5 pt-4 pb-4 border-b border-gray-100/60">
-        <Link href="/dashboard/admin" className="flex items-center gap-3">
+      <div className="px-5 pt-4 pb-4 border-b border-gray-100/60 flex items-center justify-between">
+        <Link href="/dashboard/admin" className="flex items-center gap-3" onClick={() => setMobileOpen && setMobileOpen(false)}>
           <Image src="/Logo.png" alt="DaanPitara" width={40} height={40} className="object-contain rounded-xl" />
           <div>
             <span className="text-[17px] font-bold text-gray-900 tracking-tight leading-none">DaanPitara</span>
             <span className="block text-[11px] text-gray-400 font-medium mt-0.5">Admin Portal</span>
           </div>
         </Link>
+        <button 
+          className="md:hidden text-gray-400 hover:text-gray-600 p-1"
+          onClick={() => setMobileOpen && setMobileOpen(false)}
+        >
+          &times;
+        </button>
       </div>
 
       {/* Navigation Label */}
@@ -63,6 +78,7 @@ export default function AdminSidebar() {
             <Link
               key={item.href}
               href={item.href}
+              onClick={() => setMobileOpen && setMobileOpen(false)}
               className={`flex items-center gap-3 px-3 py-2.5 rounded-xl transition-all duration-200 group text-[14px] relative
                 ${active
                   ? "bg-[#F59E0B]/10 text-[#B45309] font-semibold"

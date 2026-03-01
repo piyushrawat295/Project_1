@@ -181,7 +181,7 @@ export default function DocumentsPage() {
                                             onClick={() => {
                                               if (!doc.id) return;
                                               const link = document.createElement('a');
-                                              link.href = `/api/documents/${doc.id}`;
+                                              link.href = `/api/documents/${doc.id}?download=true`;
                                               link.download = doc.name;
                                               document.body.appendChild(link);
                                               link.click();

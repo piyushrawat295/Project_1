@@ -95,15 +95,12 @@ export default async function AdminDashboardPage() {
         </div>
 
         {/* Recent Activities */}
-        <div className="bg-white rounded-2xl shadow-sm border border-gray-100/60 p-6 flex flex-col h-full">
+        <div className="bg-white rounded-2xl shadow-sm border border-gray-100/60 p-6 flex flex-col h-full bg-white relative overflow-hidden">
           <div className="flex items-center justify-between mb-5">
             <div>
               <h3 className="text-lg font-medium text-gray-900">Recent Activities</h3>
               <p className="text-[11px] text-gray-400 mt-0.5">Latest platform updates</p>
             </div>
-            <Link href="/dashboard/admin/reports" className="text-xs font-semibold text-[#1572A1] hover:underline">
-              View All
-            </Link>
           </div>
           <div className="space-y-4 flex-1">
              {recentActivities.length === 0 ? (

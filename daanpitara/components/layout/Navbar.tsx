@@ -62,10 +62,10 @@ export default function Navbar() {
         </div>
 
         {/* RIGHT - NAV LINKS & AUTH */}
-        <div className="flex items-center ml-auto min-w-0 max-w-full pl-1 gap-2 sm:gap-6 xl:gap-8">
+        <div className="flex items-center ml-auto min-w-0 max-w-full pl-1 gap-2 sm:gap-4 md:gap-6 xl:gap-8">
           
-          {/* Links Container */}
-          <div className="flex items-center gap-6 sm:gap-8">
+          {/* Links Container - Scrollable on very small screens, squeezed text to avoid hamburger */}
+          <div className="flex items-center gap-3 sm:gap-5 lg:gap-8 overflow-x-auto no-scrollbar py-2 mask-linear-fade">
             {navLinks.map((link) => {
               const isActive = link.href === '/' 
                 ? pathname === '/' 
@@ -75,7 +75,7 @@ export default function Navbar() {
                 <Link
                   key={link.label}
                   href={link.href}
-                  className={`text-[15px] sm:text-[16px] font-bold transition-colors whitespace-nowrap ${isActive ? 'text-blue-600' : 'text-gray-600 hover:text-blue-600'}`}
+                  className={`text-[12px] sm:text-[13px] md:text-[15px] lg:text-[16px] font-bold transition-colors whitespace-nowrap ${isActive ? 'text-blue-600' : 'text-gray-600 hover:text-blue-600'}`}
                 >
                   {link.label}
                 </Link>

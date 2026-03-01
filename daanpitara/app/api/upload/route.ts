@@ -1,9 +1,9 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth-options";
-import { writeFile } from "fs/promises";
 import path from "path";
-import fs from "fs";
+import { PutObjectCommand } from "@aws-sdk/client-s3";
+import s3Client from "@/lib/s3";
 
 const ALLOWED_MIME_TYPES = [
   'application/pdf',
@@ -69,19 +69,21 @@ export async function POST(req: NextRequest) {
       }, { status: 400 });
     }
 
-    const uploadDir = path.join(process.cwd(), "public/uploads");
-    if (!fs.existsSync(uploadDir)) {
-      fs.mkdirSync(uploadDir, { recursive: true });
-    }
-
     const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
     const sanitizedOriginalName = file.name.replace(/[^a-zA-Z0-9.-]/g, '_');
     const filename = `${uniqueSuffix}-${sanitizedOriginalName}`;
-    const filePath = path.join(uploadDir, filename);
 
-    await writeFile(filePath, buffer);
+    const params = {
+      Bucket: process.env.AWS_S3_BUCKET_NAME,
+      Key: `uploads/${filename}`,
+      Body: buffer,
+      ContentType: file.type,
+    };
 
-    const url = `/uploads/${filename}`;
+    const command = new PutObjectCommand(params);
+    await s3Client.send(command);
+
+    const url = `/uploads/${filename}`; // We store this path in DB and use our wrapper API
 
     return NextResponse.json({
       success: true,
