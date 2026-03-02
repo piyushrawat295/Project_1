@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getToken } from "next-auth/jwt";
 import path from "path";
-import { PutObjectCommand, S3Client } from "@aws-sdk/client-s3";
+// import { PutObjectCommand, S3Client } from "@aws-sdk/client-s3";
 
 const ALLOWED_MIME_TYPES = [
   'application/pdf',
@@ -14,15 +14,15 @@ const ALLOWED_MIME_TYPES = [
 
 const ALLOWED_EXTENSIONS = ['.pdf', '.jpg', '.jpeg', '.png', '.doc', '.docx'];
 
-async function getS3Client() {
-  return new S3Client({
-    region: process.env.AWS_REGION || "us-east-1",
-    credentials: process.env.AWS_ACCESS_KEY_ID ? {
-      accessKeyId: process.env.AWS_ACCESS_KEY_ID,
-      secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY || "",
-    } : undefined,
-  });
-}
+// async function getS3Client() {
+//   return new S3Client({
+//     region: process.env.AWS_REGION || "us-east-1",
+//     credentials: process.env.AWS_ACCESS_KEY_ID ? {
+//       accessKeyId: process.env.AWS_ACCESS_KEY_ID,
+//       secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY || "",
+//     } : undefined,
+//   });
+// }
 
 export const runtime = 'nodejs';
 
@@ -82,6 +82,8 @@ export async function POST(req: NextRequest) {
     const sanitizedOriginalName = file.name.replace(/[^a-zA-Z0-9.-]/g, '_');
     const filename = `${uniqueSuffix}-${sanitizedOriginalName}`;
 
+    // --- S3 UPLOAD TEMPORARILY DISABLED FOR VERCEL DEBUGGING ---
+    /*
     const s3Client = await getS3Client();
 
     const params = {
@@ -93,6 +95,7 @@ export async function POST(req: NextRequest) {
 
     const command = new PutObjectCommand(params);
     await s3Client.send(command);
+    */
 
     const url = `/uploads/${filename}`;
 
