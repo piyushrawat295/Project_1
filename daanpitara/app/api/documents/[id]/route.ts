@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getToken } from "next-auth/jwt";
-import { authOptions } from "@/lib/auth-options";
+// import removed to resolve Vercel deployment bloat
 import { db } from "@/lib/db";
 import { documents, ngos } from "@/lib/schema";
 import { eq } from "drizzle-orm";

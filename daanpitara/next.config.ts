@@ -2,8 +2,14 @@ import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
   reactStrictMode: true,
-  // Fix for Next.js 14+ on Node 20 to prevent Vercel Serverless Bloat
-  serverExternalPackages: ["@neondatabase/serverless", "bcryptjs"],
+  // CRITICAL FIX: Explicitly exclude all heavy native/C++ modules from Vercel Serverless Functions
+  serverExternalPackages: [
+    "@neondatabase/serverless",
+    "bcryptjs",
+    "drizzle-orm",
+    "@aws-sdk/client-s3",
+    "three"
+  ],
   /* config options here */
   images: {
     remotePatterns: [
