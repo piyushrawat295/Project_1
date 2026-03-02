@@ -364,26 +364,31 @@ export default function RecordsClient({ initialData, initialStats }: { initialDa
                             <p className="text-gray-900">{selectedRecord.description || "No description provided."}</p>
                         </div>
                          <div className="grid grid-cols-2 gap-4">
-                            <div>
-                                <p className="text-sm text-gray-500 mb-1">Date</p>
-                                <p className="font-medium text-gray-900">{new Date(selectedRecord.createdAt).toLocaleDateString()}</p>
-                            </div>
-                            <div>
-                                <p className="text-sm text-gray-500 mb-1">Size</p>
-                                <p className="font-medium text-gray-900">2.5 MB (Mock)</p>
-                            </div>
-                        </div>
+                             <div>
+                                 <p className="text-sm text-gray-500 mb-1">Date</p>
+                                 <p className="font-medium text-gray-900">{new Date(selectedRecord.createdAt).toLocaleDateString()}</p>
+                             </div>
+                             <div>
+                                 <p className="text-sm text-gray-500 mb-1">Type</p>
+                                 <p className="font-medium text-gray-900">{selectedRecord.type || 'Document'}</p>
+                             </div>
+                         </div>
                    </div>
 
-                   <div className="flex gap-3 border-t border-gray-100 pt-6">
-                       <button className="flex-1 py-2.5 bg-[#0EA5E9] text-white rounded-xl font-medium hover:bg-[#0284c7] flex items-center justify-center gap-2">
-                           <Download className="w-4 h-4" />
-                           Download
-                       </button>
-                       <button onClick={() => setSelectedRecord(null)} className="px-6 py-2.5 border border-gray-200 text-gray-700 rounded-xl font-medium hover:bg-gray-50">
-                           Close
-                       </button>
-                   </div>
+                    <div className="flex gap-3 border-t border-gray-100 pt-6">
+                        <a 
+                            href={`/api/documents/${selectedRecord.id}?download=true`} 
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="flex-1 py-2.5 bg-[#0EA5E9] text-white rounded-xl font-medium hover:bg-[#0284c7] flex items-center justify-center gap-2"
+                        >
+                            <Download className="w-4 h-4" />
+                            Download
+                        </a>
+                        <button onClick={() => window.open(`/api/documents/${selectedRecord.id}`, '_blank')} className="px-6 py-2.5 border border-gray-200 text-gray-700 rounded-xl font-medium hover:bg-gray-50">
+                            View
+                        </button>
+                    </div>
                </div>
            </div>
        )}
@@ -429,11 +434,11 @@ function RecordCard({ record, view, onDelete, onView }: { record: any, view: str
                <div className="text-right text-sm text-gray-500">
                    <p>{date}</p>
                </div>
-               <div className="flex gap-2">
-                   <button onClick={onView} className="p-2 text-blue-600 bg-blue-50 rounded-lg hover:bg-blue-100"><Eye className="w-4 h-4" /></button>
-                   <a href={record.url} target="_blank" rel="noopener noreferrer" className="p-2 text-gray-600 bg-gray-50 rounded-lg hover:bg-gray-100 flex items-center justify-center"><Download className="w-4 h-4" /></a>
-                   <button onClick={onDelete} className="p-2 text-red-600 bg-red-50 rounded-lg hover:bg-red-100"><Trash2 className="w-4 h-4" /></button>
-               </div>
+                <div className="flex gap-2">
+                    <button onClick={() => window.open(`/api/documents/${record.id}`, '_blank')} className="p-2 text-blue-600 bg-blue-50 rounded-lg hover:bg-blue-100"><Eye className="w-4 h-4" /></button>
+                    <a href={`/api/documents/${record.id}?download=true`} target="_blank" rel="noopener noreferrer" className="p-2 text-gray-600 bg-gray-50 rounded-lg hover:bg-gray-100 flex items-center justify-center"><Download className="w-4 h-4" /></a>
+                    <button onClick={onDelete} className="p-2 text-red-600 bg-red-50 rounded-lg hover:bg-red-100"><Trash2 className="w-4 h-4" /></button>
+                </div>
             </div>
        )
     }
@@ -455,10 +460,10 @@ function RecordCard({ record, view, onDelete, onView }: { record: any, view: str
             </div>
 
             <div className="flex gap-2">
-                <button onClick={onView} className="flex-1 py-2 bg-blue-50 text-blue-600 text-xs font-semibold rounded-lg flex items-center justify-center gap-2 hover:bg-blue-100">
+                <button onClick={() => window.open(`/api/documents/${record.id}`, '_blank')} className="flex-1 py-2 bg-blue-50 text-blue-600 text-xs font-semibold rounded-lg flex items-center justify-center gap-2 hover:bg-blue-100">
                     <Eye className="w-3.5 h-3.5" /> View
                 </button>
-                 <a href={record.url} target="_blank" rel="noopener noreferrer" className="flex-1 py-2 bg-gray-50 text-gray-600 text-xs font-semibold rounded-lg flex items-center justify-center gap-2 hover:bg-gray-100">
+                 <a href={`/api/documents/${record.id}?download=true`} target="_blank" rel="noopener noreferrer" className="flex-1 py-2 bg-gray-50 text-gray-600 text-xs font-semibold rounded-lg flex items-center justify-center gap-2 hover:bg-gray-100">
                     <Download className="w-3.5 h-3.5" /> Download
                 </a>
                  <button onClick={onDelete} className="p-2 bg-red-50 text-red-600 rounded-lg hover:bg-red-100">

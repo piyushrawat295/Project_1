@@ -1,21 +1,29 @@
 import { NextRequest, NextResponse } from "next/server";
-import { getServerSession } from "next-auth";
+import { getToken } from "next-auth/jwt";
 import { authOptions } from "@/lib/auth-options";
 import { db } from "@/lib/db";
 import { documents, ngos } from "@/lib/schema";
-import { eq, and } from "drizzle-orm";
+import { eq } from "drizzle-orm";
 import path from "path";
-import { GetObjectCommand } from "@aws-sdk/client-s3";
-import s3Client from "@/lib/s3";
+import { GetObjectCommand, S3Client } from "@aws-sdk/client-s3";
 
 const ALLOWED_EXTENSIONS = ['.pdf', '.jpg', '.jpeg', '.png', '.doc', '.docx'];
-const MAX_FILE_SIZE = 10 * 1024 * 1024;
+
+async function getS3Client() {
+  return new S3Client({
+    region: process.env.AWS_REGION || "us-east-1",
+    credentials: process.env.AWS_ACCESS_KEY_ID ? {
+      accessKeyId: process.env.AWS_ACCESS_KEY_ID,
+      secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY || "",
+    } : undefined,
+  });
+}
 
 export async function GET(req: NextRequest) {
   try {
-    const session = await getServerSession(authOptions);
+    const token = await getToken({ req, secret: process.env.NEXTAUTH_SECRET });
 
-    if (!session?.user?.id) {
+    if (!token?.sub) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
@@ -26,8 +34,8 @@ export async function GET(req: NextRequest) {
       return NextResponse.json({ error: "Document ID required" }, { status: 400 });
     }
 
-    const userId = parseInt(session.user.id);
-    const userRole = (session.user as any).role;
+    const userId = parseInt(token.sub);
+    const userRole = token.role as string;
 
     const docId = parseInt(documentId);
     if (isNaN(docId)) {
@@ -67,6 +75,8 @@ export async function GET(req: NextRequest) {
     const objectKey = doc.url.startsWith('/') ? doc.url.substring(1) : doc.url;
 
     try {
+      const s3Client = await getS3Client();
+      
       const getObjectParams = {
         Bucket: process.env.AWS_S3_BUCKET_NAME,
         Key: objectKey,
@@ -87,25 +97,29 @@ export async function GET(req: NextRequest) {
       const contentType = contentTypes[ext] || 'application/octet-stream';
       const filename = doc.name.replace(/[^a-zA-Z0-9.-]/g, '_') + ext;
 
-      // Type cast the body to work with NextResponse
-      const stream = s3Response.Body as unknown as ReadableStream;
-
       const isDownload = req.nextUrl.searchParams.get('download') === 'true';
       const dispositionType = isDownload ? 'attachment' : 'inline';
 
+      const headers = new Headers();
+      headers.set('Content-Type', contentType);
+      headers.set('Content-Disposition', `${dispositionType}; filename="${filename}"`);
+      headers.set('Cache-Control', 'private, no-cache, no-store');
+      
+      if (s3Response.ContentLength) {
+        headers.set('Content-Length', s3Response.ContentLength.toString());
+      }
+
+      const stream = s3Response.Body as unknown as ReadableStream;
+
       return new NextResponse(stream, {
-        headers: {
-          'Content-Type': contentType,
-          'Content-Disposition': `${dispositionType}; filename="${filename}"`,
-          'Content-Length': s3Response.ContentLength?.toString() || '',
-          'Cache-Control': 'private, no-cache, no-store',
-        },
+        headers,
       });
     } catch (s3Error: any) {
-      if (s3Error.name === 'NoSuchKey') {
+      console.error("S3 Error:", s3Error);
+      if (s3Error.name === 'NoSuchKey' || s3Error.code === 'NoSuchKey') {
         return NextResponse.json({ error: "File not found on server" }, { status: 404 });
       }
-      throw s3Error;
+      return NextResponse.json({ error: "Failed to fetch document" }, { status: 500 });
     }
 
   } catch (error) {
