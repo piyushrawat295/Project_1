@@ -31,6 +31,10 @@ export default function RecordsClient({ initialData, initialStats }: { initialDa
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedRecord, setSelectedRecord] = useState<any>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [file, setFile] = useState<File | null>(null);
+  const [isUploadingFile, setIsUploadingFile] = useState(false);
+  const [progress, setProgress] = useState(0);
+
   const [formData, setFormData] = useState({
       title: "",
       type: "Records",
@@ -45,9 +49,54 @@ export default function RecordsClient({ initialData, initialStats }: { initialDa
 
   const handleSubmit = async (e: React.FormEvent) => {
       e.preventDefault();
+      
+      let finalUrl = formData.url;
+
+      if (file) {
+          setIsUploadingFile(true);
+          setProgress(20);
+          try {
+              const progressInterval = setInterval(() => {
+                  setProgress(p => (p < 80 ? p + 10 : p));
+              }, 200);
+
+              const uploadData = new FormData();
+              uploadData.append('file', file);
+              
+              const res = await fetch('/api/upload', {
+                  method: 'POST',
+                  body: uploadData,
+              });
+              
+              clearInterval(progressInterval);
+              setProgress(100);
+
+              let errorData = null;
+              if (!res.ok) {
+                  try {
+                      errorData = await res.json();
+                  } catch (_) {}
+                  throw new Error((errorData && errorData.error) ? errorData.error : "Upload failed");
+              }
+
+              const data = await res.json();
+              if (data.success && data.url) {
+                  finalUrl = data.url;
+              } else {
+                  throw new Error(data.error || "Upload failed");
+              }
+          } catch (err: any) {
+              console.error("Error uploading file:", err);
+              alert(err.message || "Failed to upload file. Please try again.");
+              setIsUploadingFile(false);
+              return; // Stop submission if file upload fails
+          }
+          setTimeout(() => setIsUploadingFile(false), 500);
+      }
+
       setIsSubmitting(true);
       try {
-          const result = await createRecord(formData);
+          const result = await createRecord({ ...formData, url: finalUrl });
           if (result.success) {
               setIsModalOpen(false);
               setFormData({ 
@@ -57,6 +106,8 @@ export default function RecordsClient({ initialData, initialStats }: { initialDa
                   description: "",
                   url: ""
               });
+              setFile(null);
+              setProgress(0);
               router.refresh();
               alert("Record uploaded successfully!");
           } else {
@@ -232,17 +283,53 @@ export default function RecordsClient({ initialData, initialStats }: { initialDa
                            <textarea name="description" value={formData.description} onChange={handleInputChange} rows={3} className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-[#0EA5E9] outline-none" placeholder="Brief description of the record"></textarea>
                        </div>
 
-                       <div className="border-2 border-dashed border-gray-200 rounded-xl p-8 mb-6 flex flex-col items-center justify-center cursor-not-allowed bg-gray-50">
-                            {/* Mock Upload Field */}
-                            <Upload className="w-10 h-10 text-gray-400 mb-2" />
-                            <p className="text-sm text-gray-500">Click to upload (Mock)</p>
-                            <p className="text-xs text-gray-400 mt-1">PDF (Max 2MB), DOC, JPG, PNG (Max 10MB)</p>
+                       <div className="relative">
+                            <input 
+                                type="file" 
+                                id="record-file" 
+                                className="hidden" 
+                                onChange={(e) => setFile(e.target.files?.[0] || null)}
+                                accept=".pdf,.doc,.docx,.jpg,.jpeg,.png"
+                                disabled={isUploadingFile}
+                            />
+                            <label 
+                                htmlFor="record-file"
+                                className={`border-2 border-dashed rounded-xl p-8 mb-6 flex flex-col items-center justify-center transition-all cursor-pointer
+                                ${file ? "border-green-100 bg-green-50/30" : "border-gray-200 bg-gray-50 hover:bg-white hover:border-blue-200"}`}
+                            >
+                                {isUploadingFile ? (
+                                    <div className="flex flex-col items-center w-full">
+                                        <div className="w-10 h-10 rounded-full border-4 border-blue-100 border-t-blue-500 animate-spin mb-3" />
+                                        <p className="text-sm font-bold text-blue-600">Uploading {progress}%</p>
+                                        <div className="w-full max-w-[200px] bg-gray-200 h-1.5 rounded-full mt-3 overflow-hidden">
+                                            <div 
+                                                className="bg-blue-500 h-full transition-all duration-300" 
+                                                style={{ width: `${progress}%` }}
+                                            />
+                                        </div>
+                                    </div>
+                                ) : file ? (
+                                    <div className="flex flex-col items-center">
+                                        <div className="w-10 h-10 rounded-full bg-green-100 flex items-center justify-center text-green-600 mb-3">
+                                            <FileText size={20} />
+                                        </div>
+                                        <p className="text-sm font-bold text-gray-900 mb-1">{file.name}</p>
+                                        <p className="text-xs text-green-600 font-medium">Click to replace file</p>
+                                    </div>
+                                ) : (
+                                    <>
+                                        <Upload className="w-10 h-10 text-gray-400 mb-2" />
+                                        <p className="text-sm text-gray-500">Click to upload document</p>
+                                        <p className="text-xs text-gray-400 mt-1">PDF (Max 2MB), DOC, JPG, PNG (Max 10MB)</p>
+                                    </>
+                                )}
+                            </label>
                        </div>
 
                        <div className="flex gap-3 pt-4 border-t">
-                           <button type="button" onClick={() => setIsModalOpen(false)} className="flex-1 px-4 py-2 border rounded-lg text-gray-700 hover:bg-gray-50">Cancel</button>
-                           <button type="submit" disabled={isSubmitting} className="flex-1 px-4 py-2 bg-[#0EA5E9] text-white rounded-lg hover:bg-[#0284c7] disabled:opacity-50">
-                               {isSubmitting ? "Uploading..." : "Upload Record"}
+                           <button type="button" onClick={() => { setIsModalOpen(false); setFile(null); }} className="flex-1 px-4 py-2 border rounded-lg text-gray-700 hover:bg-gray-50">Cancel</button>
+                           <button type="submit" disabled={isSubmitting || isUploadingFile} className="flex-1 px-4 py-2 bg-[#0EA5E9] text-white rounded-lg hover:bg-[#0284c7] disabled:opacity-50">
+                               {isSubmitting || isUploadingFile ? "Uploading..." : "Upload Record"}
                            </button>
                        </div>
                    </form>
