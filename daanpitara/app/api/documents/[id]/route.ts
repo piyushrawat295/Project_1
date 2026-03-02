@@ -19,6 +19,10 @@ async function getS3Client() {
   });
 }
 
+// CRITICAL VERCEL FIX: Force Node runtime so Vercel does not attempt to compile S3 streaming functions to Edge
+export const runtime = 'nodejs';
+export const maxDuration = 60;
+
 export async function GET(req: NextRequest) {
   try {
     const token = await getToken({ req, secret: process.env.NEXTAUTH_SECRET });
@@ -76,7 +80,7 @@ export async function GET(req: NextRequest) {
 
     try {
       const s3Client = await getS3Client();
-      
+
       const getObjectParams = {
         Bucket: process.env.AWS_S3_BUCKET_NAME,
         Key: objectKey,
@@ -104,16 +108,19 @@ export async function GET(req: NextRequest) {
       headers.set('Content-Type', contentType);
       headers.set('Content-Disposition', `${dispositionType}; filename="${filename}"`);
       headers.set('Cache-Control', 'private, no-cache, no-store');
-      
+
       if (s3Response.ContentLength) {
         headers.set('Content-Length', s3Response.ContentLength.toString());
       }
 
-      const stream = s3Response.Body as unknown as ReadableStream;
+      // CRITICAL VERCEL FIX: Must transform Node stream to Web Stream for Next.js 14 Response
+      const webStream = s3Response.Body?.transformToWebStream();
 
-      return new NextResponse(stream, {
-        headers,
-      });
+      if (!webStream) {
+        throw new Error("Failed to get response body stream from S3");
+      }
+
+      return new NextResponse(webStream, { headers });
     } catch (s3Error: any) {
       console.error("S3 Error:", s3Error);
       if (s3Error.name === 'NoSuchKey' || s3Error.code === 'NoSuchKey') {
@@ -127,3 +134,4 @@ export async function GET(req: NextRequest) {
     return NextResponse.json({ error: "Internal server error" }, { status: 500 });
   }
 }
+
