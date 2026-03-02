@@ -24,6 +24,9 @@ async function getS3Client() {
   });
 }
 
+export const runtime = 'nodejs';
+export const maxDuration = 60; // 60 seconds (max for Hobby/Pro)
+
 export async function POST(req: NextRequest) {
   try {
     const token = await getToken({ req, secret: process.env.NEXTAUTH_SECRET });
@@ -81,7 +84,7 @@ export async function POST(req: NextRequest) {
     const filename = `${uniqueSuffix}-${sanitizedOriginalName}`;
 
     const s3Client = await getS3Client();
-    
+
     const params = {
       Bucket: process.env.AWS_S3_BUCKET_NAME,
       Key: `uploads/${filename}`,
