@@ -616,7 +616,13 @@ function UploadCard({ title, sub, required, onUpload, isUploaded, fileName }: Up
       clearInterval(progressInterval);
       setProgress(100);
       
-      if (!res.ok) throw new Error("Upload failed");
+      let errorData = null;
+      if (!res.ok) {
+        try {
+          errorData = await res.json();
+        } catch (_) {}
+        throw new Error((errorData && errorData.error) ? errorData.error : "Upload failed");
+      }
       
       const data = await res.json();
       
@@ -626,9 +632,9 @@ function UploadCard({ title, sub, required, onUpload, isUploaded, fileName }: Up
       } else {
          throw new Error(data.error || "Upload failed");
       }
-    } catch (err) {
+    } catch (err: any) {
       console.error("Error uploading file:", err);
-      alert("Failed to upload file. Please try again.");
+      alert(err.message || "Failed to upload file. Please try again.");
     } finally {
       setTimeout(() => setUploading(false), 500);
     }
