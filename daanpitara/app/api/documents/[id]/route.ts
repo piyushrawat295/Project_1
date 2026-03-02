@@ -113,14 +113,12 @@ export async function GET(req: NextRequest) {
         headers.set('Content-Length', s3Response.ContentLength.toString());
       }
 
-      // CRITICAL VERCEL FIX: Must transform Node stream to Web Stream for Next.js 14 Response
-      const webStream = s3Response.Body?.transformToWebStream();
+      // Next.js safely handles Node streams natively when 'nodejs' runtime is explicitly enforced
+      const stream = s3Response.Body as unknown as ReadableStream;
 
-      if (!webStream) {
-        throw new Error("Failed to get response body stream from S3");
-      }
-
-      return new NextResponse(webStream, { headers });
+      return new NextResponse(stream, {
+        headers,
+      });
     } catch (s3Error: any) {
       console.error("S3 Error:", s3Error);
       if (s3Error.name === 'NoSuchKey' || s3Error.code === 'NoSuchKey') {
