@@ -25,7 +25,6 @@ async function getS3Client() {
 }
 
 export const runtime = 'nodejs';
-export const maxDuration = 60; // 60 seconds (max for Hobby/Pro)
 
 export async function POST(req: NextRequest) {
   try {

@@ -21,7 +21,6 @@ async function getS3Client() {
 
 // CRITICAL VERCEL FIX: Force Node runtime so Vercel does not attempt to compile S3 streaming functions to Edge
 export const runtime = 'nodejs';
-export const maxDuration = 60;
 
 export async function GET(req: NextRequest) {
   try {
