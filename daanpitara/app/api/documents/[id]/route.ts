@@ -5,19 +5,19 @@ import { db } from "@/lib/db";
 import { documents, ngos } from "@/lib/schema";
 import { eq } from "drizzle-orm";
 import path from "path";
-// import { GetObjectCommand, S3Client } from "@aws-sdk/client-s3";
+import { GetObjectCommand, S3Client } from "@aws-sdk/client-s3";
 
 const ALLOWED_EXTENSIONS = ['.pdf', '.jpg', '.jpeg', '.png', '.doc', '.docx'];
 
-// async function getS3Client() {
-//   return new S3Client({
-//     region: process.env.AWS_REGION || "us-east-1",
-//     credentials: process.env.AWS_ACCESS_KEY_ID ? {
-//       accessKeyId: process.env.AWS_ACCESS_KEY_ID,
-//       secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY || "",
-//     } : undefined,
-//   });
-// }
+async function getS3Client() {
+  return new S3Client({
+    region: process.env.AWS_REGION || "us-east-1",
+    credentials: process.env.AWS_ACCESS_KEY_ID ? {
+      accessKeyId: process.env.AWS_ACCESS_KEY_ID,
+      secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY || "",
+    } : undefined,
+  });
+}
 
 // CRITICAL VERCEL FIX: Force Node runtime so Vercel does not attempt to compile S3 streaming functions to Edge
 export const runtime = 'nodejs';
@@ -77,10 +77,7 @@ export async function GET(req: NextRequest) {
 
     const objectKey = doc.url.startsWith('/') ? doc.url.substring(1) : doc.url;
 
-    // --- S3 TEMPORARILY DISABLED FOR VERCEL DEBUGGING ---
-    return NextResponse.json({ error: "S3 Download temporarily disabled for debugging Vercel Deployment" }, { status: 503 });
-
-    /* try {
+    try {
       const s3Client = await getS3Client();
 
       const getObjectParams = {
@@ -127,7 +124,7 @@ export async function GET(req: NextRequest) {
         return NextResponse.json({ error: "File not found on server" }, { status: 404 });
       }
       return NextResponse.json({ error: "Failed to fetch document" }, { status: 500 });
-    } */
+    }
 
   } catch (error) {
     console.error("Document download error:", error);
