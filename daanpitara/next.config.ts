@@ -1,6 +1,10 @@
 import type { NextConfig } from "next";
 
 const nextConfig = {
+  reactStrictMode: true,
+  experimental: {
+    serverComponentsExternalPackages: ["@neondatabase/serverless", "bcryptjs"],
+  },
   /* config options here */
   images: {
     remotePatterns: [
@@ -32,7 +36,6 @@ const nextConfig = {
       },
     ],
   },
-
 };
 
 export default nextConfig;

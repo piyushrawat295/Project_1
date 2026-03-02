@@ -19,13 +19,13 @@ export async function middleware(request: NextRequest) {
     const role = token.role;
 
     if (isAdminRoute && role !== 'admin') {
-       return NextResponse.redirect(new URL('/', request.url)); // Or unauthorized page
+      return NextResponse.redirect(new URL('/', request.url)); // Or unauthorized page
     }
 
 
-    
+
     if (isCallerRoute && role !== 'caller_agent') {
-        return NextResponse.redirect(new URL('/', request.url));
+      return NextResponse.redirect(new URL('/', request.url));
     }
 
     return NextResponse.next();
@@ -35,5 +35,9 @@ export async function middleware(request: NextRequest) {
 }
 
 export const config = {
-  matcher: ['/dashboard/:path*', '/caller/dashboard/:path*'],
+  matcher: [
+    '/((?!api|_next/static|_next/image|favicon.ico|.*\\..*).*)',
+    '/dashboard/:path*',
+    '/caller/dashboard/:path*'
+  ],
 };
